@@ -106,6 +106,7 @@ function PasswordCell({ password }: { password: string }) {
       </Button>
     </div>
   );
+}
 
 
 // ---- Students Page ----
