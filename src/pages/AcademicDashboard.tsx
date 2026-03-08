@@ -432,6 +432,7 @@ function TeachersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Designation</TableHead>
+                <TableHead>Password</TableHead>
                 <TableHead>Subjects</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -445,6 +446,9 @@ function TeachersPage() {
                   <TableCell className="text-muted-foreground text-xs">{t.email}</TableCell>
                   <TableCell className="text-muted-foreground">{t.dept}</TableCell>
                   <TableCell className="text-sm">{t.designation}</TableCell>
+                  <TableCell>
+                    <PasswordCell password={t.password} />
+                  </TableCell>
                   <TableCell>{t.subjects}</TableCell>
                   <TableCell className={`font-medium text-sm ${t.status === "Active" ? "text-success" : "text-warning"}`}>{t.status}</TableCell>
                   <TableCell>
