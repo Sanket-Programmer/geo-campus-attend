@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
-import { BarChart3, Users, PlayCircle, MapPin, Clock, CalendarDays, StopCircle, UserCheck, UserX, CheckCircle2 } from "lucide-react";
+import { BarChart3, Users, PlayCircle, MapPin, Clock, CalendarDays, StopCircle, UserCheck, UserX, CheckCircle2, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,17 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+
+interface SessionRecord {
+  id: string;
+  subject: string;
+  date: string;
+  time: string;
+  present: number;
+  total: number;
+  geo: boolean;
+  students: { id: string; name: string; roll: string; status: "present" | "absent"; time: string }[];
+}
 
 const allStudents = [
   { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001" },
@@ -35,12 +46,12 @@ const navItems = [
 ];
 
 const liveStudents = [
-  { id: "STU001", name: "Alex Johnson", time: "09:02 AM", status: "present" as const },
-  { id: "STU002", name: "Maria Garcia", time: "09:03 AM", status: "present" as const },
-  { id: "STU003", name: "James Wilson", time: "09:05 AM", status: "present" as const },
-  { id: "STU004", name: "Emily Davis", time: "-", status: "absent" as const },
-  { id: "STU005", name: "Robert Brown", time: "09:08 AM", status: "present" as const },
-  { id: "STU006", name: "Sarah Miller", time: "-", status: "absent" as const },
+  { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", time: "09:02 AM", status: "present" as const },
+  { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", time: "09:03 AM", status: "present" as const },
+  { id: "STU003", name: "James Wilson", roll: "CSE-A-003", time: "09:05 AM", status: "present" as const },
+  { id: "STU004", name: "Emily Davis", roll: "CSE-A-004", time: "-", status: "absent" as const },
+  { id: "STU005", name: "Robert Brown", roll: "CSE-A-005", time: "09:08 AM", status: "present" as const },
+  { id: "STU006", name: "Sarah Miller", roll: "CSE-A-006", time: "-", status: "absent" as const },
 ];
 
 const reportData = [
@@ -50,20 +61,68 @@ const reportData = [
   { student: "Emily Davis", id: "STU004", jan: 60, feb: 65, mar: 58, overall: 61 },
 ];
 
-const sessionHistory = [
-  { id: "SES001", subject: "CS201 - Data Structures", date: "2026-03-07", time: "09:00 - 10:00 AM", present: 42, total: 48, geo: true },
-  { id: "SES002", subject: "CS301 - Database Systems", date: "2026-03-07", time: "11:00 - 12:00 PM", present: 38, total: 45, geo: true },
-  { id: "SES003", subject: "CS201 - Data Structures", date: "2026-03-06", time: "09:00 - 10:00 AM", present: 44, total: 48, geo: false },
-  { id: "SES004", subject: "CS301 - Database Systems", date: "2026-03-06", time: "11:00 - 12:00 PM", present: 40, total: 45, geo: true },
-  { id: "SES005", subject: "CS201 - Data Structures", date: "2026-03-05", time: "09:00 - 10:00 AM", present: 46, total: 48, geo: true },
+const initialSessions: SessionRecord[] = [
+  {
+    id: "SES001", subject: "CS201 - Data Structures", date: "2026-03-07", time: "09:00 - 10:00 AM", present: 42, total: 48, geo: true,
+    students: [
+      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "09:02 AM" },
+      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "present", time: "09:03 AM" },
+      { id: "STU003", name: "James Wilson", roll: "CSE-A-003", status: "present", time: "09:05 AM" },
+      { id: "STU004", name: "Emily Davis", roll: "CSE-A-004", status: "absent", time: "-" },
+      { id: "STU005", name: "Robert Brown", roll: "CSE-A-005", status: "present", time: "09:08 AM" },
+    ],
+  },
+  {
+    id: "SES002", subject: "CS301 - Database Systems", date: "2026-03-07", time: "11:00 - 12:00 PM", present: 38, total: 45, geo: true,
+    students: [
+      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "11:01 AM" },
+      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "absent", time: "-" },
+      { id: "STU003", name: "James Wilson", roll: "CSE-A-003", status: "present", time: "11:04 AM" },
+    ],
+  },
+  {
+    id: "SES003", subject: "CS201 - Data Structures", date: "2026-03-06", time: "09:00 - 10:00 AM", present: 44, total: 48, geo: false,
+    students: [
+      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "09:00 AM" },
+      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "present", time: "09:00 AM" },
+      { id: "STU004", name: "Emily Davis", roll: "CSE-A-004", status: "absent", time: "-" },
+    ],
+  },
+  {
+    id: "SES004", subject: "CS301 - Database Systems", date: "2026-03-06", time: "11:00 - 12:00 PM", present: 40, total: 45, geo: true,
+    students: [
+      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "11:02 AM" },
+      { id: "STU003", name: "James Wilson", roll: "CSE-A-003", status: "present", time: "11:05 AM" },
+      { id: "STU005", name: "Robert Brown", roll: "CSE-A-005", status: "absent", time: "-" },
+    ],
+  },
+  {
+    id: "SES005", subject: "CS201 - Data Structures", date: "2026-03-05", time: "09:00 - 10:00 AM", present: 46, total: 48, geo: true,
+    students: [
+      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "09:01 AM" },
+      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "present", time: "09:02 AM" },
+    ],
+  },
 ];
 
-function TeacherDashboardPage() {
+// Shared state across pages
+let sharedSessions = [...initialSessions];
+let sessionCounter = 6;
+
+function TeacherDashboardPage({ onSubmitSession }: { onSubmitSession: (session: SessionRecord) => void }) {
   const { toast } = useToast();
   const [sessionActive, setSessionActive] = useState(true);
   const [geoEnabled, setGeoEnabled] = useState(true);
   const [manualAttendance, setManualAttendance] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState("cs201");
+  const [selectedClass, setSelectedClass] = useState("cse-a");
+
+  const subjectMap: Record<string, string> = {
+    cs201: "CS201 - Data Structures",
+    cs301: "CS301 - Database Systems",
+    cs302: "CS302 - Operating Systems",
+  };
 
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
@@ -79,12 +138,46 @@ function TeacherDashboardPage() {
   };
 
   const presentCount = Object.values(manualAttendance).filter(Boolean).length;
+  const geoPresentCount = liveStudents.filter(s => s.status === "present").length;
+
+  const handleSubmitGeo = () => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    const newSession: SessionRecord = {
+      id: `SES${String(sessionCounter++).padStart(3, "0")}`,
+      subject: subjectMap[selectedSubject] || "CS201 - Data Structures",
+      date: now.toISOString().split("T")[0],
+      time: `${timeStr} (Geo Session)`,
+      present: geoPresentCount,
+      total: liveStudents.length,
+      geo: true,
+      students: liveStudents.map(s => ({ ...s, roll: s.roll })),
+    };
+    onSubmitSession(newSession);
+    setSessionActive(false);
+    toast({ title: "Geo Attendance Submitted", description: `Session recorded: ${geoPresentCount}/${liveStudents.length} present.` });
+  };
 
   const handleSubmitManual = () => {
-    toast({
-      title: "Attendance Submitted",
-      description: `Marked ${presentCount} out of ${allStudents.length} students as present.`,
-    });
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    const newSession: SessionRecord = {
+      id: `SES${String(sessionCounter++).padStart(3, "0")}`,
+      subject: subjectMap[selectedSubject] || "CS201 - Data Structures",
+      date: now.toISOString().split("T")[0],
+      time: `${timeStr} (Manual)`,
+      present: presentCount,
+      total: allStudents.length,
+      geo: false,
+      students: allStudents.map(s => ({
+        ...s,
+        status: manualAttendance[s.id] ? "present" as const : "absent" as const,
+        time: manualAttendance[s.id] ? timeStr : "-",
+      })),
+    };
+    onSubmitSession(newSession);
+    setSessionActive(false);
+    toast({ title: "Manual Attendance Submitted", description: `Marked ${presentCount} out of ${allStudents.length} students as present.` });
   };
 
   return (
@@ -92,7 +185,7 @@ function TeacherDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Students" value="156" icon={<Users className="w-5 h-5" />} />
         <StatCard title="Active Session" value="CS201" subtitle="Data Structures" icon={<PlayCircle className="w-5 h-5" />} variant="accent" />
-        <StatCard title="Present Today" value={geoEnabled ? "42" : String(presentCount)} subtitle={`out of ${geoEnabled ? 48 : allStudents.length}`} icon={<BarChart3 className="w-5 h-5" />} variant="success" />
+        <StatCard title="Present Today" value={geoEnabled ? String(geoPresentCount) : String(presentCount)} subtitle={`out of ${geoEnabled ? liveStudents.length : allStudents.length}`} icon={<BarChart3 className="w-5 h-5" />} variant="success" />
         <StatCard title="Geo-Attendance" value={geoEnabled ? "Enabled" : "Disabled"} icon={<MapPin className="w-5 h-5" />} variant={geoEnabled ? "accent" : "default"} />
       </div>
 
@@ -104,7 +197,7 @@ function TeacherDashboardPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Subject</Label>
-              <Select defaultValue="cs201">
+              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cs201">CS201 - Data Structures</SelectItem>
@@ -115,7 +208,7 @@ function TeacherDashboardPage() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Class</Label>
-              <Select defaultValue="cse-a">
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cse-a">CSE - Section A</SelectItem>
@@ -167,31 +260,50 @@ function TeacherDashboardPage() {
         <Card className="lg:col-span-2 shadow-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-sans font-semibold">
-              {geoEnabled ? "Live Attendance" : "Manual Attendance"}
+              {geoEnabled ? "Live Attendance (Geo)" : "Manual Attendance"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {geoEnabled ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {liveStudents.map((s) => (
-                    <TableRow key={s.id}>
-                      <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                      <TableCell className="font-medium">{s.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{s.time}</TableCell>
-                      <TableCell><StatusBadge status={s.status} /></TableCell>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <UserCheck className="w-4 h-4 text-success" />
+                      <span className="font-medium text-success">{geoPresentCount}</span>
+                      <span className="text-muted-foreground">Present</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <UserX className="w-4 h-4 text-destructive" />
+                      <span className="font-medium text-destructive">{liveStudents.length - geoPresentCount}</span>
+                      <span className="text-muted-foreground">Absent</span>
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={handleSubmitGeo} disabled={!sessionActive}>
+                    <CheckCircle2 className="w-4 h-4 mr-1" /> Submit Attendance
+                  </Button>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {liveStudents.map((s) => (
+                      <TableRow key={s.id}>
+                        <TableCell className="font-mono text-xs">{s.id}</TableCell>
+                        <TableCell className="font-medium">{s.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{s.time}</TableCell>
+                        <TableCell><StatusBadge status={s.status} /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -251,17 +363,18 @@ function TeacherDashboardPage() {
   );
 }
 
-function SessionsPage() {
+function SessionsPage({ sessions }: { sessions: SessionRecord[] }) {
   const { toast } = useToast();
   const [showCreate, setShowCreate] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<SessionRecord | null>(null);
 
   return (
     <div className="space-y-6 animate-slide-in">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Sessions" value="45" icon={<PlayCircle className="w-5 h-5" />} />
+        <StatCard title="Total Sessions" value={String(sessions.length)} icon={<PlayCircle className="w-5 h-5" />} />
         <StatCard title="This Week" value="8" icon={<CalendarDays className="w-5 h-5" />} variant="accent" />
         <StatCard title="Avg. Attendance" value="88%" icon={<BarChart3 className="w-5 h-5" />} variant="success" />
-        <StatCard title="Geo Sessions" value="38" subtitle="84% of total" icon={<MapPin className="w-5 h-5" />} />
+        <StatCard title="Geo Sessions" value={String(sessions.filter(s => s.geo).length)} subtitle={`${Math.round((sessions.filter(s => s.geo).length / sessions.length) * 100)}% of total`} icon={<MapPin className="w-5 h-5" />} />
       </div>
 
       <Card className="shadow-card">
@@ -279,17 +392,23 @@ function SessionsPage() {
                 <TableHead>Time</TableHead>
                 <TableHead>Present</TableHead>
                 <TableHead>Geo</TableHead>
+                <TableHead>Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sessionHistory.map((s) => (
-                <TableRow key={s.id}>
+              {sessions.map((s) => (
+                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedSession(s)}>
                   <TableCell className="font-mono text-xs">{s.id}</TableCell>
                   <TableCell className="font-medium">{s.subject}</TableCell>
                   <TableCell className="text-muted-foreground">{s.date}</TableCell>
                   <TableCell className="text-muted-foreground">{s.time}</TableCell>
                   <TableCell><span className="font-semibold text-success">{s.present}</span>/{s.total}</TableCell>
                   <TableCell>{s.geo ? <span className="text-xs text-accent font-medium">Enabled</span> : <span className="text-xs text-muted-foreground">Disabled</span>}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSession(s); }}>
+                      <Eye className="w-4 h-4 mr-1" /> View
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -297,6 +416,88 @@ function SessionsPage() {
         </CardContent>
       </Card>
 
+      {/* Session Details Dialog */}
+      <Dialog open={!!selectedSession} onOpenChange={(open) => { if (!open) setSelectedSession(null); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlayCircle className="w-5 h-5 text-primary" />
+              Session Details — {selectedSession?.id}
+            </DialogTitle>
+            <DialogDescription>
+              View attendance details for this session.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSession && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Subject</p>
+                  <p className="text-sm font-semibold mt-0.5">{selectedSession.subject}</p>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Date</p>
+                  <p className="text-sm font-semibold mt-0.5">{selectedSession.date}</p>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Time</p>
+                  <p className="text-sm font-semibold mt-0.5">{selectedSession.time}</p>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Mode</p>
+                  <p className={`text-sm font-semibold mt-0.5 ${selectedSession.geo ? "text-accent" : "text-warning"}`}>
+                    {selectedSession.geo ? "Geo-Location" : "Manual"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 px-1">
+                <div className="flex items-center gap-1.5 text-sm">
+                  <UserCheck className="w-4 h-4 text-success" />
+                  <span className="font-semibold text-success">{selectedSession.present}</span>
+                  <span className="text-muted-foreground">Present</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <UserX className="w-4 h-4 text-destructive" />
+                  <span className="font-semibold text-destructive">{selectedSession.total - selectedSession.present}</span>
+                  <span className="text-muted-foreground">Absent</span>
+                </div>
+                <div className="ml-auto text-sm text-muted-foreground">
+                  Attendance Rate: <span className="font-semibold text-foreground">{Math.round((selectedSession.present / selectedSession.total) * 100)}%</span>
+                </div>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Roll No</TableHead>
+                    <TableHead>Student ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Time Marked</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedSession.students.map((st) => (
+                    <TableRow key={st.id} className={st.status === "present" ? "bg-success/5" : ""}>
+                      <TableCell className="font-mono text-xs">{st.roll}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{st.id}</TableCell>
+                      <TableCell className="font-medium">{st.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{st.time}</TableCell>
+                      <TableCell><StatusBadge status={st.status} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedSession(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Session Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
@@ -398,7 +599,6 @@ function ReportsPage() {
         </CardContent>
       </Card>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="shadow-card">
           <CardContent className="pt-6 text-center">
@@ -426,11 +626,16 @@ function ReportsPage() {
 const TeacherDashboard = () => {
   const location = useLocation();
   const path = location.pathname;
+  const [sessions, setSessions] = useState<SessionRecord[]>(initialSessions);
+
+  const handleSubmitSession = (session: SessionRecord) => {
+    setSessions(prev => [session, ...prev]);
+  };
 
   let content;
-  if (path === "/teacher/sessions") content = <SessionsPage />;
+  if (path === "/teacher/sessions") content = <SessionsPage sessions={sessions} />;
   else if (path === "/teacher/reports") content = <ReportsPage />;
-  else content = <TeacherDashboardPage />;
+  else content = <TeacherDashboardPage onSubmitSession={handleSubmitSession} />;
 
   return (
     <DashboardLayout title="Teacher Dashboard" subtitle="Dr. Sarah Williams" navItems={navItems} role="Teacher">
