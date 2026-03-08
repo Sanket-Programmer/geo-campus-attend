@@ -95,6 +95,19 @@ function AcademicDashboardPage() {
   );
 }
 
+// ---- Password Cell Component ----
+function PasswordCell({ password }: { password: string }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs font-mono">{visible ? password : "••••••••"}</span>
+      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setVisible(!visible)}>
+        {visible ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+      </Button>
+    </div>
+  );
+
+
 // ---- Students Page ----
 function StudentsPage() {
   const { toast } = useToast();
@@ -117,6 +130,7 @@ function StudentsPage() {
       dept: form.dept,
       year: form.year,
       phone: form.phone,
+      password: form.password || "default@123",
       status: "Active",
     };
     setStudentsList([...studentsList, newStudent]);
