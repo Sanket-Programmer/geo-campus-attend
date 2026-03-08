@@ -18,8 +18,8 @@ const navItems = [
   { title: "Dashboard", url: "/academic", icon: BarChart3 },
   { title: "Students", url: "/academic/students", icon: Users },
   { title: "Teachers", url: "/academic/teachers", icon: GraduationCap },
+  { title: "Classes", url: "/academic/classes", icon: School },
   { title: "Subjects", url: "/academic/subjects", icon: BookOpen },
-  
 ];
 
 const departments = [
