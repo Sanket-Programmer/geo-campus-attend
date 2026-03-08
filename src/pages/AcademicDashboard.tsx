@@ -394,7 +394,7 @@ function TeachersPage() {
     };
     setTeachersList([...teachersList, newTeacher]);
     setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [], assignedClass: "" });
+    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [], assignedClass: [] });
     toast({ title: "Teacher Added", description: `${form.name} has been registered successfully.` });
   };
 
