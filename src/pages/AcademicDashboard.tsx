@@ -868,14 +868,15 @@ function ClassesPage() {
       id: `CLS${String(classesList.length + 20).padStart(3, "0")}`,
       name: form.name,
       department: form.department,
-      year: form.year,
-      semester: form.semester,
+      school: form.school,
+      year: "1st",
+      semester: "1st",
       students: 0,
-      classTeacher: form.classTeacher || "—",
+      classTeacher: "—",
     };
     setClassesList([...classesList, newClass]);
     setShowAdd(false);
-    setForm({ name: "", department: "CSE", year: "1st", semester: "1st", classTeacher: "" });
+    setForm({ name: "", department: "CSE", school: "School of Computer Sciences" });
     toast({ title: "Class Added", description: `${form.name} has been created successfully.` });
   };
 
