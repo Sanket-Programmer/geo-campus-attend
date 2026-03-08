@@ -377,7 +377,7 @@ function TeachersPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editTeacher, setEditTeacher] = useState<typeof initialTeachers[0] | null>(null);
   const [deleteTeacher, setDeleteTeacher] = useState<typeof initialTeachers[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[], assignedClass: "" });
+  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[], assignedClass: [] as string[] });
 
   const handleAdd = () => {
     const newTeacher = {
