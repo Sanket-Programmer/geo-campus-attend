@@ -390,10 +390,11 @@ function TeachersPage() {
       password: form.password || "default@123",
       subjects: 0,
       status: "Active",
+      assignedClass: form.assignedClass,
     };
     setTeachersList([...teachersList, newTeacher]);
     setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] });
+    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [], assignedClass: "" });
     toast({ title: "Teacher Added", description: `${form.name} has been registered successfully.` });
   };
 
