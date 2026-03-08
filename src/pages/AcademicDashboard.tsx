@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Building2, Users, BookOpen, BarChart3, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff } from "lucide-react";
+import { Building2, Users, BookOpen, BarChart3, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff, School } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
