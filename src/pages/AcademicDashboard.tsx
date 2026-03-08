@@ -132,6 +132,7 @@ function StudentsPage() {
       email: form.email,
       dept: form.dept,
       year: form.year,
+      semester: form.semester,
       phone: form.phone,
       password: form.password || "default@123",
       status: "Active",
