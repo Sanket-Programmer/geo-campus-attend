@@ -40,11 +40,11 @@ const initialStudents = [
 const classOptions = ["CSE-A", "CSE-B", "ECE-A", "ECE-B", "ME-A", "ME-B", "CE-A", "CE-B"];
 
 const initialTeachers = [
-  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123", assignedClass: ["CSE-A"] },
-  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123", assignedClass: ["CSE-B"] },
-  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123", assignedClass: ["ECE-A", "ECE-B"] },
-  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123", assignedClass: ["ME-A"] },
-  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123", assignedClass: ["CE-A"] },
+  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123", assignedClass: ["CSE-A"], subjectsAssigned: ["CS201", "CS402"] },
+  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123", assignedClass: ["CSE-B"], subjectsAssigned: ["CS301"] },
+  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123", assignedClass: ["ECE-A", "ECE-B"], subjectsAssigned: ["EC201"] },
+  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123", assignedClass: ["ME-A"], subjectsAssigned: ["ME301"] },
+  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123", assignedClass: ["CE-A"], subjectsAssigned: [] },
 ];
 
 const initialSubjects = [
@@ -391,6 +391,7 @@ function TeachersPage() {
       subjects: 0,
       status: "Active",
       assignedClass: form.assignedClass,
+      subjectsAssigned: form.subjectsAssigned,
     };
     setTeachersList([...teachersList, newTeacher]);
     setShowAdd(false);
@@ -599,6 +600,52 @@ function TeachersPage() {
                   </Select>
                 </div>
                 <div className="space-y-2"><Label>Phone</Label><Input value={editTeacher.phone} onChange={(e) => setEditTeacher({ ...editTeacher, phone: e.target.value })} /></div>
+              </div>
+              <div className="space-y-2">
+                <Label>Subjects Assigned</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {initialSubjects.map((sub) => (
+                    <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={editTeacher.subjectsAssigned?.includes(sub.code) || false}
+                        onChange={(e) => {
+                          const current = editTeacher.subjectsAssigned || [];
+                          if (e.target.checked) {
+                            setEditTeacher({ ...editTeacher, subjectsAssigned: [...current, sub.code] });
+                          } else {
+                            setEditTeacher({ ...editTeacher, subjectsAssigned: current.filter((c: string) => c !== sub.code) });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{sub.code} - {sub.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Assigned Class</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {classOptions.map((c) => (
+                    <label key={c} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={editTeacher.assignedClass?.includes(c) || false}
+                        onChange={(e) => {
+                          const current = editTeacher.assignedClass || [];
+                          if (e.target.checked) {
+                            setEditTeacher({ ...editTeacher, assignedClass: [...current, c] });
+                          } else {
+                            setEditTeacher({ ...editTeacher, assignedClass: current.filter((x: string) => x !== c) });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{c}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
           )}
