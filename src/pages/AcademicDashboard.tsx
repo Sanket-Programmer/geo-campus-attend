@@ -509,28 +509,6 @@ function TeachersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Assigned Class</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {classOptions.map((c) => (
-                    <label key={c} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
-                      <input
-                        type="checkbox"
-                        checked={form.assignedClass.includes(c)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setForm({ ...form, assignedClass: [...form.assignedClass, c] });
-                          } else {
-                            setForm({ ...form, assignedClass: form.assignedClass.filter((x) => x !== c) });
-                          }
-                        }}
-                        className="rounded"
-                      />
-                      <span>{c}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
             <div className="space-y-2">
               <Label>Subjects Assigned</Label>
@@ -550,6 +528,28 @@ function TeachersPage() {
                       className="rounded"
                     />
                     <span>{sub.code} - {sub.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Assigned Class</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {classOptions.map((c) => (
+                  <label key={c} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                    <input
+                      type="checkbox"
+                      checked={form.assignedClass.includes(c)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setForm({ ...form, assignedClass: [...form.assignedClass, c] });
+                        } else {
+                          setForm({ ...form, assignedClass: form.assignedClass.filter((x) => x !== c) });
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <span>{c}</span>
                   </label>
                 ))}
               </div>
