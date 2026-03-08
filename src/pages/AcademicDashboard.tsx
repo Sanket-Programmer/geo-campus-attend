@@ -391,6 +391,7 @@ function TeachersPage() {
       subjects: 0,
       status: "Active",
       assignedClass: form.assignedClass,
+      subjectsAssigned: form.subjectsAssigned,
     };
     setTeachersList([...teachersList, newTeacher]);
     setShowAdd(false);
