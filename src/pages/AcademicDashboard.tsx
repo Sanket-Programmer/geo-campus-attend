@@ -943,7 +943,7 @@ const AcademicDashboard = () => {
   if (path === "/academic/students") content = <StudentsPage />;
   else if (path === "/academic/teachers") content = <TeachersPage />;
   else if (path === "/academic/subjects") content = <SubjectsPage />;
-  else if (path === "/academic/settings") content = <SettingsPage />;
+  
   else content = <AcademicDashboardPage />;
 
   return (
