@@ -38,11 +38,11 @@ const initialStudents = [
 ];
 
 const initialTeachers = [
-  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active" },
-  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active" },
-  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active" },
-  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active" },
-  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave" },
+  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123" },
+  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123" },
+  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123" },
+  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123" },
+  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123" },
 ];
 
 const initialSubjects = [
@@ -385,6 +385,7 @@ function TeachersPage() {
       dept: form.dept,
       designation: form.designation,
       phone: form.phone,
+      password: form.password || "default@123",
       subjects: 0,
       status: "Active",
     };
@@ -431,6 +432,7 @@ function TeachersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Designation</TableHead>
+                <TableHead>Password</TableHead>
                 <TableHead>Subjects</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -444,6 +446,9 @@ function TeachersPage() {
                   <TableCell className="text-muted-foreground text-xs">{t.email}</TableCell>
                   <TableCell className="text-muted-foreground">{t.dept}</TableCell>
                   <TableCell className="text-sm">{t.designation}</TableCell>
+                  <TableCell>
+                    <PasswordCell password={t.password} />
+                  </TableCell>
                   <TableCell>{t.subjects}</TableCell>
                   <TableCell className={`font-medium text-sm ${t.status === "Active" ? "text-success" : "text-warning"}`}>{t.status}</TableCell>
                   <TableCell>
