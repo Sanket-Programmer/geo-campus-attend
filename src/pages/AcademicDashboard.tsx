@@ -918,6 +918,7 @@ function ClassesPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Class Name</TableHead>
                 <TableHead>Department</TableHead>
+                <TableHead>School</TableHead>
                 <TableHead>Students</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -928,6 +929,7 @@ function ClassesPage() {
                   <TableCell className="font-mono text-xs">{c.id}</TableCell>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="text-muted-foreground">{c.department}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{(c as any).school || "—"}</TableCell>
                   <TableCell>{c.students}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
