@@ -647,7 +647,7 @@ function SubjectsPage() {
                 <TableHead>Department</TableHead>
                 <TableHead>Semester</TableHead>
                 <TableHead>Credits</TableHead>
-                <TableHead>Teacher</TableHead>
+                
                 <TableHead>Students</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -660,7 +660,7 @@ function SubjectsPage() {
                   <TableCell className="text-muted-foreground">{s.dept}</TableCell>
                   <TableCell>{s.semester}</TableCell>
                   <TableCell>{s.credits}</TableCell>
-                  <TableCell className="text-sm">{s.teacher}</TableCell>
+                  
                   <TableCell>{s.students}</TableCell>
                   <TableCell>
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditSubject({ ...s }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
@@ -708,7 +708,7 @@ function SubjectsPage() {
               </div>
               <div className="space-y-2"><Label>Credits</Label><Input type="number" value={form.credits} onChange={(e) => setForm({ ...form, credits: Number(e.target.value) })} /></div>
             </div>
-            <div className="space-y-2"><Label>Assigned Teacher</Label><Input value={form.teacher} onChange={(e) => setForm({ ...form, teacher: e.target.value })} placeholder="Dr. John Doe" /></div>
+            
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
@@ -754,7 +754,7 @@ function SubjectsPage() {
                 </div>
                 <div className="space-y-2"><Label>Credits</Label><Input type="number" value={editSubject.credits} onChange={(e) => setEditSubject({ ...editSubject, credits: Number(e.target.value) })} /></div>
               </div>
-              <div className="space-y-2"><Label>Assigned Teacher</Label><Input value={editSubject.teacher} onChange={(e) => setEditSubject({ ...editSubject, teacher: e.target.value })} /></div>
+              
             </div>
           )}
           <DialogFooter>
