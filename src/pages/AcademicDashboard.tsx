@@ -343,6 +343,48 @@ function StudentsPage() {
                 </div>
                 <div className="space-y-2"><Label>Phone</Label><Input value={editStudent.phone} onChange={(e) => setEditStudent({ ...editStudent, phone: e.target.value })} /></div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Semester</Label>
+                  <Select value={(editStudent as any).semester || "1st"} onValueChange={(v) => setEditStudent({ ...editStudent, semester: v } as any)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1st">1st Sem</SelectItem>
+                      <SelectItem value="2nd">2nd Sem</SelectItem>
+                      <SelectItem value="3rd">3rd Sem</SelectItem>
+                      <SelectItem value="4th">4th Sem</SelectItem>
+                      <SelectItem value="5th">5th Sem</SelectItem>
+                      <SelectItem value="6th">6th Sem</SelectItem>
+                      <SelectItem value="7th">7th Sem</SelectItem>
+                      <SelectItem value="8th">8th Sem</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2"><Label>Password</Label><Input type="password" value={editStudent.password} onChange={(e) => setEditStudent({ ...editStudent, password: e.target.value })} /></div>
+              </div>
+              <div className="space-y-2">
+                <Label>Subjects Registered</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {initialSubjects.map((sub) => (
+                    <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={((editStudent as any).subjectsRegistered || []).includes(sub.code)}
+                        onChange={(e) => {
+                          const current = (editStudent as any).subjectsRegistered || [];
+                          if (e.target.checked) {
+                            setEditStudent({ ...editStudent, subjectsRegistered: [...current, sub.code] } as any);
+                          } else {
+                            setEditStudent({ ...editStudent, subjectsRegistered: current.filter((c: string) => c !== sub.code) } as any);
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{sub.code} - {sub.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
