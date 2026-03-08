@@ -385,6 +385,7 @@ function TeachersPage() {
       dept: form.dept,
       designation: form.designation,
       phone: form.phone,
+      password: form.password || "default@123",
       subjects: 0,
       status: "Active",
     };
