@@ -61,14 +61,39 @@ const sessionHistory = [
 function TeacherDashboardPage() {
   const { toast } = useToast();
   const [sessionActive, setSessionActive] = useState(true);
+  const [geoEnabled, setGeoEnabled] = useState(true);
+  const [manualAttendance, setManualAttendance] = useState<Record<string, boolean>>({});
+  const [selectAll, setSelectAll] = useState(false);
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    const updated: Record<string, boolean> = {};
+    allStudents.forEach((s) => { updated[s.id] = checked; });
+    setManualAttendance(updated);
+  };
+
+  const handleToggleStudent = (id: string, checked: boolean) => {
+    const updated = { ...manualAttendance, [id]: checked };
+    setManualAttendance(updated);
+    setSelectAll(allStudents.every((s) => updated[s.id]));
+  };
+
+  const presentCount = Object.values(manualAttendance).filter(Boolean).length;
+
+  const handleSubmitManual = () => {
+    toast({
+      title: "Attendance Submitted",
+      description: `Marked ${presentCount} out of ${allStudents.length} students as present.`,
+    });
+  };
 
   return (
     <div className="space-y-6 animate-slide-in">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Students" value="156" icon={<Users className="w-5 h-5" />} />
         <StatCard title="Active Session" value="CS201" subtitle="Data Structures" icon={<PlayCircle className="w-5 h-5" />} variant="accent" />
-        <StatCard title="Present Today" value="42" subtitle="out of 48" icon={<BarChart3 className="w-5 h-5" />} variant="success" />
-        <StatCard title="Geo-Attendance" value="Enabled" icon={<MapPin className="w-5 h-5" />} variant="accent" />
+        <StatCard title="Present Today" value={geoEnabled ? "42" : String(presentCount)} subtitle={`out of ${geoEnabled ? 48 : allStudents.length}`} icon={<BarChart3 className="w-5 h-5" />} variant="success" />
+        <StatCard title="Geo-Attendance" value={geoEnabled ? "Enabled" : "Disabled"} icon={<MapPin className="w-5 h-5" />} variant={geoEnabled ? "accent" : "default"} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -100,18 +125,26 @@ function TeacherDashboardPage() {
             </div>
             <div className="flex items-center justify-between py-2">
               <Label className="text-sm">Geo-Attendance</Label>
-              <Switch defaultChecked />
+              <Switch checked={geoEnabled} onCheckedChange={setGeoEnabled} />
             </div>
-            <div className={`rounded-lg border p-3 text-center ${sessionActive ? "bg-accent/10 border-accent/20" : "bg-muted/30"}`}>
-              <div className="flex items-center justify-center gap-1.5 text-xs mb-1">
-                {sessionActive ? (
-                  <><span className="w-2 h-2 rounded-full bg-accent animate-pulse" /><span className="text-accent">Session Active</span></>
-                ) : (
-                  <span className="text-muted-foreground">No Active Session</span>
-                )}
+            {!geoEnabled && (
+              <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-center">
+                <p className="text-xs font-medium text-warning">Manual Mode Active</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Mark attendance manually below</p>
               </div>
-              <p className="text-xs text-muted-foreground">Room 301, Block A · 50m radius</p>
-            </div>
+            )}
+            {geoEnabled && (
+              <div className={`rounded-lg border p-3 text-center ${sessionActive ? "bg-accent/10 border-accent/20" : "bg-muted/30"}`}>
+                <div className="flex items-center justify-center gap-1.5 text-xs mb-1">
+                  {sessionActive ? (
+                    <><span className="w-2 h-2 rounded-full bg-accent animate-pulse" /><span className="text-accent">Session Active</span></>
+                  ) : (
+                    <span className="text-muted-foreground">No Active Session</span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Room 301, Block A · 50m radius</p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <Button
                 className="bg-accent text-accent-foreground hover:bg-accent/90"
@@ -123,7 +156,7 @@ function TeacherDashboardPage() {
               <Button
                 variant="outline"
                 disabled={!sessionActive}
-                onClick={() => { setSessionActive(false); toast({ title: "Session Ended", description: "Attendance session has been closed. 42/48 present." }); }}
+                onClick={() => { setSessionActive(false); toast({ title: "Session Ended", description: "Attendance session has been closed." }); }}
               >
                 <StopCircle className="w-4 h-4 mr-1" /> End
               </Button>
@@ -133,29 +166,84 @@ function TeacherDashboardPage() {
 
         <Card className="lg:col-span-2 shadow-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-sans font-semibold">Live Attendance</CardTitle>
+            <CardTitle className="text-base font-sans font-semibold">
+              {geoEnabled ? "Live Attendance" : "Manual Attendance"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {liveStudents.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{s.time}</TableCell>
-                    <TableCell><StatusBadge status={s.status} /></TableCell>
+            {geoEnabled ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {liveStudents.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-mono text-xs">{s.id}</TableCell>
+                      <TableCell className="font-medium">{s.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{s.time}</TableCell>
+                      <TableCell><StatusBadge status={s.status} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <UserCheck className="w-4 h-4 text-success" />
+                      <span className="font-medium text-success">{presentCount}</span>
+                      <span className="text-muted-foreground">Present</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <UserX className="w-4 h-4 text-destructive" />
+                      <span className="font-medium text-destructive">{allStudents.length - presentCount}</span>
+                      <span className="text-muted-foreground">Absent</span>
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={handleSubmitManual} disabled={!sessionActive}>
+                    <CheckCircle2 className="w-4 h-4 mr-1" /> Submit Attendance
+                  </Button>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox checked={selectAll} onCheckedChange={(c) => handleSelectAll(!!c)} />
+                      </TableHead>
+                      <TableHead>Roll No</TableHead>
+                      <TableHead>Student ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {allStudents.map((s) => (
+                      <TableRow key={s.id} className={manualAttendance[s.id] ? "bg-success/5" : ""}>
+                        <TableCell>
+                          <Checkbox
+                            checked={!!manualAttendance[s.id]}
+                            onCheckedChange={(c) => handleToggleStudent(s.id, !!c)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">{s.roll}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{s.id}</TableCell>
+                        <TableCell className="font-medium">{s.name}</TableCell>
+                        <TableCell>
+                          <StatusBadge status={manualAttendance[s.id] ? "present" : "absent"} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
