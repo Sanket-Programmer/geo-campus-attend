@@ -13,6 +13,20 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const allStudents = [
+  { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001" },
+  { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002" },
+  { id: "STU003", name: "James Wilson", roll: "CSE-A-003" },
+  { id: "STU004", name: "Emily Davis", roll: "CSE-A-004" },
+  { id: "STU005", name: "Robert Brown", roll: "CSE-A-005" },
+  { id: "STU006", name: "Sarah Miller", roll: "CSE-A-006" },
+  { id: "STU007", name: "Daniel Lee", roll: "CSE-A-007" },
+  { id: "STU008", name: "Jessica Taylor", roll: "CSE-A-008" },
+  { id: "STU009", name: "Michael Anderson", roll: "CSE-A-009" },
+  { id: "STU010", name: "Sophia Martinez", roll: "CSE-A-010" },
+];
 
 const navItems = [
   { title: "Dashboard", url: "/teacher", icon: BarChart3 },
