@@ -917,10 +917,7 @@ function ClassesPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Class Name</TableHead>
                 <TableHead>Department</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Semester</TableHead>
                 <TableHead>Students</TableHead>
-                <TableHead>Class Teacher</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
