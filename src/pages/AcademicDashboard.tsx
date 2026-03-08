@@ -858,7 +858,7 @@ function ClassesPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editClass, setEditClass] = useState<typeof initialClasses[0] | null>(null);
   const [deleteClass, setDeleteClass] = useState<typeof initialClasses[0] | null>(null);
-  const [form, setForm] = useState({ name: "", department: "CSE", year: "1st", semester: "1st", classTeacher: "" });
+  const [form, setForm] = useState({ name: "", department: "CSE", school: "School of Computer Sciences" });
   const [search, setSearch] = useState("");
 
   const filtered = classesList.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.department.toLowerCase().includes(search.toLowerCase()));
