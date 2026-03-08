@@ -200,7 +200,7 @@ function StudentsPage() {
                     <PasswordCell password={s.password} />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{s.phone}</TableCell>
-                  <TableCell className="text-success font-medium text-sm">{s.status}</TableCell>
+                  <TableCell>{(s as any).semester || "—"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditStudent({ ...s }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
