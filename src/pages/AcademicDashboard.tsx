@@ -1013,37 +1013,22 @@ function ClassesPage() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Year</Label>
-                  <Select value={editClass.year} onValueChange={(v) => setEditClass({ ...editClass, year: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1st">1st Year</SelectItem>
-                      <SelectItem value="2nd">2nd Year</SelectItem>
-                      <SelectItem value="3rd">3rd Year</SelectItem>
-                      <SelectItem value="4th">4th Year</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Semester</Label>
-                  <Select value={editClass.semester} onValueChange={(v) => setEditClass({ ...editClass, semester: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1st">1st Sem</SelectItem>
-                      <SelectItem value="2nd">2nd Sem</SelectItem>
-                      <SelectItem value="3rd">3rd Sem</SelectItem>
-                      <SelectItem value="4th">4th Sem</SelectItem>
-                      <SelectItem value="5th">5th Sem</SelectItem>
-                      <SelectItem value="6th">6th Sem</SelectItem>
-                      <SelectItem value="7th">7th Sem</SelectItem>
-                      <SelectItem value="8th">8th Sem</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>School of Sciences</Label>
+                <Select value={(editClass as any).school || "School of Computer Sciences"} onValueChange={(v) => setEditClass({ ...editClass, school: v } as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="School of Computer Sciences">School of Computer Sciences</SelectItem>
+                    <SelectItem value="School of Mechanical Sciences">School of Mechanical Sciences</SelectItem>
+                    <SelectItem value="School of Electrical Sciences">School of Electrical Sciences</SelectItem>
+                    <SelectItem value="School of Civil Sciences">School of Civil Sciences</SelectItem>
+                    <SelectItem value="School of Chemical Sciences">School of Chemical Sciences</SelectItem>
+                    <SelectItem value="School of Biological Sciences">School of Biological Sciences</SelectItem>
+                    <SelectItem value="School of Physical Sciences">School of Physical Sciences</SelectItem>
+                    <SelectItem value="School of Mathematical Sciences">School of Mathematical Sciences</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="space-y-2"><Label>Class Teacher</Label><Input value={editClass.classTeacher} onChange={(e) => setEditClass({ ...editClass, classTeacher: e.target.value })} /></div>
             </div>
           )}
           <DialogFooter>
