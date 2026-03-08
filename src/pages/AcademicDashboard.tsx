@@ -917,10 +917,7 @@ function ClassesPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Class Name</TableHead>
                 <TableHead>Department</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Semester</TableHead>
                 <TableHead>Students</TableHead>
-                <TableHead>Class Teacher</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -930,10 +927,7 @@ function ClassesPage() {
                   <TableCell className="font-mono text-xs">{c.id}</TableCell>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="text-muted-foreground">{c.department}</TableCell>
-                  <TableCell>{c.year}</TableCell>
-                  <TableCell>{c.semester}</TableCell>
                   <TableCell>{c.students}</TableCell>
-                  <TableCell className="text-sm">{c.classTeacher}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditClass({ ...c }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
