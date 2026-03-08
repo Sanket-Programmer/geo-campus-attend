@@ -104,7 +104,7 @@ function StudentsPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editStudent, setEditStudent] = useState<typeof initialStudents[0] | null>(null);
   const [deleteStudent, setDeleteStudent] = useState<typeof initialStudents[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", year: "1st", phone: "" });
+  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", year: "1st", phone: "", password: "", semester: "1st", subjectsRegistered: [] as string[] });
   const [search, setSearch] = useState("");
 
   const filtered = studentsList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
@@ -121,7 +121,7 @@ function StudentsPage() {
     };
     setStudentsList([...studentsList, newStudent]);
     setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", year: "1st", phone: "" });
+    setForm({ name: "", email: "", dept: "CSE", year: "1st", phone: "", password: "", semester: "1st", subjectsRegistered: [] });
     toast({ title: "Student Added", description: `${form.name} has been registered successfully.` });
   };
 
@@ -205,6 +205,10 @@ function StudentsPage() {
               <div className="space-y-2"><Label>Full Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Doe" /></div>
               <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@uni.edu" /></div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Password</Label><Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" /></div>
+              <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210" /></div>
+            </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Department</Label>
@@ -230,7 +234,44 @@ function StudentsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210" /></div>
+              <div className="space-y-2">
+                <Label>Semester</Label>
+                <Select value={form.semester} onValueChange={(v) => setForm({ ...form, semester: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1st">1st Sem</SelectItem>
+                    <SelectItem value="2nd">2nd Sem</SelectItem>
+                    <SelectItem value="3rd">3rd Sem</SelectItem>
+                    <SelectItem value="4th">4th Sem</SelectItem>
+                    <SelectItem value="5th">5th Sem</SelectItem>
+                    <SelectItem value="6th">6th Sem</SelectItem>
+                    <SelectItem value="7th">7th Sem</SelectItem>
+                    <SelectItem value="8th">8th Sem</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Subjects Registered</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {initialSubjects.map((sub) => (
+                  <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                    <input
+                      type="checkbox"
+                      checked={form.subjectsRegistered.includes(sub.code)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setForm({ ...form, subjectsRegistered: [...form.subjectsRegistered, sub.code] });
+                        } else {
+                          setForm({ ...form, subjectsRegistered: form.subjectsRegistered.filter((c) => c !== sub.code) });
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <span>{sub.code} - {sub.name}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -315,7 +356,7 @@ function TeachersPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editTeacher, setEditTeacher] = useState<typeof initialTeachers[0] | null>(null);
   const [deleteTeacher, setDeleteTeacher] = useState<typeof initialTeachers[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "" });
+  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[] });
 
   const handleAdd = () => {
     const newTeacher = {
@@ -330,7 +371,7 @@ function TeachersPage() {
     };
     setTeachersList([...teachersList, newTeacher]);
     setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "" });
+    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] });
     toast({ title: "Teacher Added", description: `${form.name} has been registered successfully.` });
   };
 
@@ -411,6 +452,10 @@ function TeachersPage() {
               <div className="space-y-2"><Label>Full Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Dr. John Doe" /></div>
               <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@uni.edu" /></div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Password</Label><Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" /></div>
+              <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210" /></div>
+            </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Department</Label>
@@ -435,7 +480,28 @@ function TeachersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210" /></div>
+            </div>
+            <div className="space-y-2">
+              <Label>Subjects Assigned</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {initialSubjects.map((sub) => (
+                  <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                    <input
+                      type="checkbox"
+                      checked={form.subjectsAssigned.includes(sub.code)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setForm({ ...form, subjectsAssigned: [...form.subjectsAssigned, sub.code] });
+                        } else {
+                          setForm({ ...form, subjectsAssigned: form.subjectsAssigned.filter((c) => c !== sub.code) });
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <span>{sub.code} - {sub.name}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>
