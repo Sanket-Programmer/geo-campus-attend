@@ -600,6 +600,52 @@ function TeachersPage() {
                 </div>
                 <div className="space-y-2"><Label>Phone</Label><Input value={editTeacher.phone} onChange={(e) => setEditTeacher({ ...editTeacher, phone: e.target.value })} /></div>
               </div>
+              <div className="space-y-2">
+                <Label>Subjects Assigned</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {initialSubjects.map((sub) => (
+                    <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={editTeacher.subjectsAssigned?.includes(sub.code) || false}
+                        onChange={(e) => {
+                          const current = editTeacher.subjectsAssigned || [];
+                          if (e.target.checked) {
+                            setEditTeacher({ ...editTeacher, subjectsAssigned: [...current, sub.code] });
+                          } else {
+                            setEditTeacher({ ...editTeacher, subjectsAssigned: current.filter((c: string) => c !== sub.code) });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{sub.code} - {sub.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Assigned Class</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {classOptions.map((c) => (
+                    <label key={c} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={editTeacher.assignedClass?.includes(c) || false}
+                        onChange={(e) => {
+                          const current = editTeacher.assignedClass || [];
+                          if (e.target.checked) {
+                            setEditTeacher({ ...editTeacher, assignedClass: [...current, c] });
+                          } else {
+                            setEditTeacher({ ...editTeacher, assignedClass: current.filter((x: string) => x !== c) });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{c}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
