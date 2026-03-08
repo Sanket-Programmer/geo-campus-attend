@@ -104,7 +104,7 @@ function StudentsPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editStudent, setEditStudent] = useState<typeof initialStudents[0] | null>(null);
   const [deleteStudent, setDeleteStudent] = useState<typeof initialStudents[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", year: "1st", phone: "" });
+  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", year: "1st", phone: "", password: "", semester: "1st", subjectsRegistered: [] as string[] });
   const [search, setSearch] = useState("");
 
   const filtered = studentsList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
