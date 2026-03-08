@@ -30,11 +30,11 @@ const departments = [
 ];
 
 const initialStudents = [
-  { id: "STU001", name: "Alex Johnson", email: "alex@uni.edu", dept: "CSE", year: "3rd", phone: "9876543210", status: "Active", password: "alex@123" },
-  { id: "STU009", name: "Tom Harris", email: "tom@uni.edu", dept: "ECE", year: "2nd", phone: "9876543211", status: "Active", password: "tom@123" },
-  { id: "STU010", name: "Anna White", email: "anna@uni.edu", dept: "ME", year: "4th", phone: "9876543212", status: "Active", password: "anna@123" },
-  { id: "STU011", name: "Mike Ross", email: "mike@uni.edu", dept: "CSE", year: "1st", phone: "9876543213", status: "Active", password: "mike@123" },
-  { id: "STU012", name: "Rachel Green", email: "rachel@uni.edu", dept: "CE", year: "2nd", phone: "9876543214", status: "Active", password: "rachel@123" },
+  { id: "STU001", name: "Alex Johnson", email: "alex@uni.edu", dept: "CSE", year: "3rd", semester: "5th", phone: "9876543210", status: "Active", password: "alex@123" },
+  { id: "STU009", name: "Tom Harris", email: "tom@uni.edu", dept: "ECE", year: "2nd", semester: "3rd", phone: "9876543211", status: "Active", password: "tom@123" },
+  { id: "STU010", name: "Anna White", email: "anna@uni.edu", dept: "ME", year: "4th", semester: "7th", phone: "9876543212", status: "Active", password: "anna@123" },
+  { id: "STU011", name: "Mike Ross", email: "mike@uni.edu", dept: "CSE", year: "1st", semester: "1st", phone: "9876543213", status: "Active", password: "mike@123" },
+  { id: "STU012", name: "Rachel Green", email: "rachel@uni.edu", dept: "CE", year: "2nd", semester: "4th", phone: "9876543214", status: "Active", password: "rachel@123" },
 ];
 
 const classOptions = ["CSE-A", "CSE-B", "ECE-A", "ECE-B", "ME-A", "ME-B", "CE-A", "CE-B"];
@@ -132,6 +132,7 @@ function StudentsPage() {
       email: form.email,
       dept: form.dept,
       year: form.year,
+      semester: form.semester,
       phone: form.phone,
       password: form.password || "default@123",
       status: "Active",
@@ -184,7 +185,7 @@ function StudentsPage() {
                 <TableHead>Year</TableHead>
                 <TableHead>Password</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Semester</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -200,7 +201,7 @@ function StudentsPage() {
                     <PasswordCell password={s.password} />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{s.phone}</TableCell>
-                  <TableCell className="text-success font-medium text-sm">{s.status}</TableCell>
+                  <TableCell>{(s as any).semester || "—"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditStudent({ ...s }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
