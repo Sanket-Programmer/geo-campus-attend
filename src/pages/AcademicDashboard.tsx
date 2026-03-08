@@ -184,7 +184,7 @@ function StudentsPage() {
                 <TableHead>Year</TableHead>
                 <TableHead>Password</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Semester</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
