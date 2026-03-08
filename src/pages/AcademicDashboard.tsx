@@ -754,7 +754,7 @@ function SubjectsPage() {
                 </div>
                 <div className="space-y-2"><Label>Credits</Label><Input type="number" value={editSubject.credits} onChange={(e) => setEditSubject({ ...editSubject, credits: Number(e.target.value) })} /></div>
               </div>
-              <div className="space-y-2"><Label>Assigned Teacher</Label><Input value={editSubject.teacher} onChange={(e) => setEditSubject({ ...editSubject, teacher: e.target.value })} /></div>
+              
             </div>
           )}
           <DialogFooter>
