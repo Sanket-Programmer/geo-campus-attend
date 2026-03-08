@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Building2, Users, BookOpen, BarChart3, Settings, GraduationCap, UserPlus, Trash2, Edit } from "lucide-react";
+import { Building2, Users, BookOpen, BarChart3, Settings, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -30,11 +30,11 @@ const departments = [
 ];
 
 const initialStudents = [
-  { id: "STU001", name: "Alex Johnson", email: "alex@uni.edu", dept: "CSE", year: "3rd", phone: "9876543210", status: "Active" },
-  { id: "STU009", name: "Tom Harris", email: "tom@uni.edu", dept: "ECE", year: "2nd", phone: "9876543211", status: "Active" },
-  { id: "STU010", name: "Anna White", email: "anna@uni.edu", dept: "ME", year: "4th", phone: "9876543212", status: "Active" },
-  { id: "STU011", name: "Mike Ross", email: "mike@uni.edu", dept: "CSE", year: "1st", phone: "9876543213", status: "Active" },
-  { id: "STU012", name: "Rachel Green", email: "rachel@uni.edu", dept: "CE", year: "2nd", phone: "9876543214", status: "Active" },
+  { id: "STU001", name: "Alex Johnson", email: "alex@uni.edu", dept: "CSE", year: "3rd", phone: "9876543210", status: "Active", password: "alex@123" },
+  { id: "STU009", name: "Tom Harris", email: "tom@uni.edu", dept: "ECE", year: "2nd", phone: "9876543211", status: "Active", password: "tom@123" },
+  { id: "STU010", name: "Anna White", email: "anna@uni.edu", dept: "ME", year: "4th", phone: "9876543212", status: "Active", password: "anna@123" },
+  { id: "STU011", name: "Mike Ross", email: "mike@uni.edu", dept: "CSE", year: "1st", phone: "9876543213", status: "Active", password: "mike@123" },
+  { id: "STU012", name: "Rachel Green", email: "rachel@uni.edu", dept: "CE", year: "2nd", phone: "9876543214", status: "Active", password: "rachel@123" },
 ];
 
 const initialTeachers = [
@@ -95,6 +95,20 @@ function AcademicDashboardPage() {
   );
 }
 
+// ---- Password Cell Component ----
+function PasswordCell({ password }: { password: string }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs font-mono">{visible ? password : "••••••••"}</span>
+      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setVisible(!visible)}>
+        {visible ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+      </Button>
+    </div>
+  );
+}
+
+
 // ---- Students Page ----
 function StudentsPage() {
   const { toast } = useToast();
@@ -117,6 +131,7 @@ function StudentsPage() {
       dept: form.dept,
       year: form.year,
       phone: form.phone,
+      password: form.password || "default@123",
       status: "Active",
     };
     setStudentsList([...studentsList, newStudent]);
@@ -165,6 +180,7 @@ function StudentsPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Year</TableHead>
+                <TableHead>Password</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -178,6 +194,9 @@ function StudentsPage() {
                   <TableCell className="text-muted-foreground text-xs">{s.email}</TableCell>
                   <TableCell className="text-muted-foreground">{s.dept}</TableCell>
                   <TableCell>{s.year}</TableCell>
+                  <TableCell>
+                    <PasswordCell password={s.password} />
+                  </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{s.phone}</TableCell>
                   <TableCell className="text-success font-medium text-sm">{s.status}</TableCell>
                   <TableCell>
