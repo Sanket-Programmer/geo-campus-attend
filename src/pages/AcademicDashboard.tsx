@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Building2, Users, BookOpen, BarChart3, Settings, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff } from "lucide-react";
+import { Building2, Users, BookOpen, BarChart3, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ const navItems = [
   { title: "Students", url: "/academic/students", icon: Users },
   { title: "Teachers", url: "/academic/teachers", icon: GraduationCap },
   { title: "Subjects", url: "/academic/subjects", icon: BookOpen },
-  { title: "Settings", url: "/academic/settings", icon: Settings },
+  
 ];
 
 const departments = [
@@ -839,101 +839,6 @@ function SubjectsPage() {
   );
 }
 
-// ---- Settings Page ----
-function SettingsPage() {
-  const { toast } = useToast();
-
-  return (
-    <div className="space-y-6 animate-slide-in max-w-3xl">
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-sans font-semibold">General Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>Institution Name</Label>
-            <Input defaultValue="National University of Technology" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Academic Year</Label><Input defaultValue="2025-2026" /></div>
-            <div className="space-y-2">
-              <Label>Current Semester</Label>
-              <Select defaultValue="even">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="odd">Odd Semester</SelectItem>
-                  <SelectItem value="even">Even Semester</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Minimum Attendance Threshold (%)</Label>
-            <Input type="number" defaultValue="75" />
-          </div>
-          <Button onClick={() => toast({ title: "Settings Saved", description: "General settings have been updated." })}>Save Settings</Button>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-sans font-semibold">Geo-Attendance Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Enable Geo-location Attendance</Label>
-              <p className="text-xs text-muted-foreground mt-1">Require location verification for attendance marking</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <div className="space-y-2">
-            <Label>Default Radius (meters)</Label>
-            <Input type="number" defaultValue="50" />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Allow Manual Override</Label>
-              <p className="text-xs text-muted-foreground mt-1">Allow teachers to mark attendance without geo-verification</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <Button onClick={() => toast({ title: "Geo Settings Saved", description: "Geo-attendance configuration has been updated." })}>Save Geo Settings</Button>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-sans font-semibold">Notification Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Low Attendance Alerts</Label>
-              <p className="text-xs text-muted-foreground mt-1">Notify students when attendance drops below threshold</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Session Reminders</Label>
-              <p className="text-xs text-muted-foreground mt-1">Send reminders before attendance sessions</p>
-            </div>
-            <Switch />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Weekly Reports</Label>
-              <p className="text-xs text-muted-foreground mt-1">Send weekly attendance summary to department heads</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <Button onClick={() => toast({ title: "Notification Settings Saved", description: "Notification preferences have been updated." })}>Save Notifications</Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 const AcademicDashboard = () => {
   const location = useLocation();
@@ -943,7 +848,7 @@ const AcademicDashboard = () => {
   if (path === "/academic/students") content = <StudentsPage />;
   else if (path === "/academic/teachers") content = <TeachersPage />;
   else if (path === "/academic/subjects") content = <SubjectsPage />;
-  else if (path === "/academic/settings") content = <SettingsPage />;
+  
   else content = <AcademicDashboardPage />;
 
   return (
