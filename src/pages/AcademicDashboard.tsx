@@ -647,7 +647,7 @@ function SubjectsPage() {
                 <TableHead>Department</TableHead>
                 <TableHead>Semester</TableHead>
                 <TableHead>Credits</TableHead>
-                <TableHead>Teacher</TableHead>
+                
                 <TableHead>Students</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
