@@ -37,12 +37,14 @@ const initialStudents = [
   { id: "STU012", name: "Rachel Green", email: "rachel@uni.edu", dept: "CE", year: "2nd", phone: "9876543214", status: "Active", password: "rachel@123" },
 ];
 
+const classOptions = ["CSE-A", "CSE-B", "ECE-A", "ECE-B", "ME-A", "ME-B", "CE-A", "CE-B"];
+
 const initialTeachers = [
-  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123" },
-  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123" },
-  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123" },
-  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123" },
-  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123" },
+  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123", assignedClass: "CSE-A" },
+  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123", assignedClass: "CSE-B" },
+  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123", assignedClass: "ECE-A" },
+  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123", assignedClass: "ME-A" },
+  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123", assignedClass: "CE-A" },
 ];
 
 const initialSubjects = [
@@ -375,7 +377,7 @@ function TeachersPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editTeacher, setEditTeacher] = useState<typeof initialTeachers[0] | null>(null);
   const [deleteTeacher, setDeleteTeacher] = useState<typeof initialTeachers[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[] });
+  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[], assignedClass: "" });
 
   const handleAdd = () => {
     const newTeacher = {
@@ -388,10 +390,11 @@ function TeachersPage() {
       password: form.password || "default@123",
       subjects: 0,
       status: "Active",
+      assignedClass: form.assignedClass,
     };
     setTeachersList([...teachersList, newTeacher]);
     setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] });
+    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [], assignedClass: "" });
     toast({ title: "Teacher Added", description: `${form.name} has been registered successfully.` });
   };
 
@@ -433,6 +436,7 @@ function TeachersPage() {
                 <TableHead>Department</TableHead>
                 <TableHead>Designation</TableHead>
                 <TableHead>Password</TableHead>
+                <TableHead>Assigned Class</TableHead>
                 <TableHead>Subjects</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -449,6 +453,7 @@ function TeachersPage() {
                   <TableCell>
                     <PasswordCell password={t.password} />
                   </TableCell>
+                  <TableCell className="text-sm">{t.assignedClass || "—"}</TableCell>
                   <TableCell>{t.subjects}</TableCell>
                   <TableCell className={`font-medium text-sm ${t.status === "Active" ? "text-success" : "text-warning"}`}>{t.status}</TableCell>
                   <TableCell>
@@ -501,6 +506,17 @@ function TeachersPage() {
                     <SelectItem value="Professor">Professor</SelectItem>
                     <SelectItem value="Associate Prof">Associate Prof</SelectItem>
                     <SelectItem value="Assistant Prof">Assistant Prof</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Assigned Class</Label>
+                <Select value={form.assignedClass} onValueChange={(v) => setForm({ ...form, assignedClass: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+                  <SelectContent>
+                    {classOptions.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
