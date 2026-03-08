@@ -918,6 +918,7 @@ function ClassesPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Class Name</TableHead>
                 <TableHead>Department</TableHead>
+                <TableHead>School</TableHead>
                 <TableHead>Students</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
