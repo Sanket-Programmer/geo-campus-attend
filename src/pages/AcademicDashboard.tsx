@@ -453,7 +453,7 @@ function TeachersPage() {
                   <TableCell>
                     <PasswordCell password={t.password} />
                   </TableCell>
-                  <TableCell className="text-sm">{t.assignedClass || "—"}</TableCell>
+                  <TableCell className="text-sm">{t.assignedClass.length > 0 ? t.assignedClass.join(", ") : "—"}</TableCell>
                   <TableCell>{t.subjects}</TableCell>
                   <TableCell className={`font-medium text-sm ${t.status === "Active" ? "text-success" : "text-warning"}`}>{t.status}</TableCell>
                   <TableCell>
