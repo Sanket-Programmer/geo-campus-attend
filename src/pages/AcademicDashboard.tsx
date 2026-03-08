@@ -40,11 +40,11 @@ const initialStudents = [
 const classOptions = ["CSE-A", "CSE-B", "ECE-A", "ECE-B", "ME-A", "ME-B", "CE-A", "CE-B"];
 
 const initialTeachers = [
-  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123", assignedClass: "CSE-A" },
-  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123", assignedClass: "CSE-B" },
-  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123", assignedClass: "ECE-A" },
-  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123", assignedClass: "ME-A" },
-  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123", assignedClass: "CE-A" },
+  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123", assignedClass: ["CSE-A"] },
+  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123", assignedClass: ["CSE-B"] },
+  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123", assignedClass: ["ECE-A", "ECE-B"] },
+  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123", assignedClass: ["ME-A"] },
+  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123", assignedClass: ["CE-A"] },
 ];
 
 const initialSubjects = [
@@ -377,7 +377,7 @@ function TeachersPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editTeacher, setEditTeacher] = useState<typeof initialTeachers[0] | null>(null);
   const [deleteTeacher, setDeleteTeacher] = useState<typeof initialTeachers[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[], assignedClass: "" });
+  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[], assignedClass: [] as string[] });
 
   const handleAdd = () => {
     const newTeacher = {
@@ -394,7 +394,7 @@ function TeachersPage() {
     };
     setTeachersList([...teachersList, newTeacher]);
     setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [], assignedClass: "" });
+    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [], assignedClass: [] });
     toast({ title: "Teacher Added", description: `${form.name} has been registered successfully.` });
   };
 
@@ -453,7 +453,7 @@ function TeachersPage() {
                   <TableCell>
                     <PasswordCell password={t.password} />
                   </TableCell>
-                  <TableCell className="text-sm">{t.assignedClass || "—"}</TableCell>
+                  <TableCell className="text-sm">{t.assignedClass.length > 0 ? t.assignedClass.join(", ") : "—"}</TableCell>
                   <TableCell>{t.subjects}</TableCell>
                   <TableCell className={`font-medium text-sm ${t.status === "Active" ? "text-success" : "text-warning"}`}>{t.status}</TableCell>
                   <TableCell>
@@ -511,14 +511,25 @@ function TeachersPage() {
               </div>
               <div className="space-y-2">
                 <Label>Assigned Class</Label>
-                <Select value={form.assignedClass} onValueChange={(v) => setForm({ ...form, assignedClass: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
-                  <SelectContent>
-                    {classOptions.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-2 gap-2">
+                  {classOptions.map((c) => (
+                    <label key={c} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={form.assignedClass.includes(c)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setForm({ ...form, assignedClass: [...form.assignedClass, c] });
+                          } else {
+                            setForm({ ...form, assignedClass: form.assignedClass.filter((x) => x !== c) });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{c}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="space-y-2">
