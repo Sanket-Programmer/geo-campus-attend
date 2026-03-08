@@ -438,7 +438,6 @@ function TeachersPage() {
                 <TableHead>Password</TableHead>
                 <TableHead>Assigned Class</TableHead>
                 <TableHead>Subjects</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -455,7 +454,7 @@ function TeachersPage() {
                   </TableCell>
                   <TableCell className="text-sm">{t.assignedClass.length > 0 ? t.assignedClass.join(", ") : "—"}</TableCell>
                   <TableCell>{t.subjects}</TableCell>
-                  <TableCell className={`font-medium text-sm ${t.status === "Active" ? "text-success" : "text-warning"}`}>{t.status}</TableCell>
+                  
                   <TableCell>
                     <div className="flex gap-1">
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditTeacher({ ...t }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
