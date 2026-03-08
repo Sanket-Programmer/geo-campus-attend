@@ -438,7 +438,6 @@ function TeachersPage() {
                 <TableHead>Password</TableHead>
                 <TableHead>Assigned Class</TableHead>
                 <TableHead>Subjects</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
