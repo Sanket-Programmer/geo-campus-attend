@@ -660,7 +660,7 @@ function SubjectsPage() {
                   <TableCell>{s.semester}</TableCell>
                   <TableCell>{s.credits}</TableCell>
                   
-                  <TableCell>{s.students}</TableCell>
+                  
                   <TableCell>
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditSubject({ ...s }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
                   </TableCell>
