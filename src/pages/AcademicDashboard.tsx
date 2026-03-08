@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Building2, Users, BookOpen, BarChart3, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff } from "lucide-react";
+import { Building2, Users, BookOpen, BarChart3, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff, School } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,8 @@ const navItems = [
   { title: "Dashboard", url: "/academic", icon: BarChart3 },
   { title: "Students", url: "/academic/students", icon: Users },
   { title: "Teachers", url: "/academic/teachers", icon: GraduationCap },
+  { title: "Classes", url: "/academic/classes", icon: School },
   { title: "Subjects", url: "/academic/subjects", icon: BookOpen },
-  
 ];
 
 const departments = [
@@ -838,6 +838,257 @@ function SubjectsPage() {
     </div>
   );
 }
+// ---- Classes Page ----
+const initialClasses = [
+  { id: "CLS001", name: "CSE-A", department: "CSE", year: "3rd", semester: "5th", students: 48, classTeacher: "Dr. Sarah Williams" },
+  { id: "CLS002", name: "CSE-B", department: "CSE", year: "3rd", semester: "5th", students: 45, classTeacher: "Prof. John Smith" },
+  { id: "CLS003", name: "ECE-A", department: "ECE", year: "2nd", semester: "3rd", students: 42, classTeacher: "Dr. Lisa Wang" },
+  { id: "CLS004", name: "ECE-B", department: "ECE", year: "2nd", semester: "3rd", students: 40, classTeacher: "—" },
+  { id: "CLS005", name: "ME-A", department: "ME", year: "4th", semester: "7th", students: 50, classTeacher: "Prof. Alan Brown" },
+  { id: "CLS006", name: "ME-B", department: "ME", year: "4th", semester: "7th", students: 38, classTeacher: "—" },
+  { id: "CLS007", name: "CE-A", department: "CE", year: "1st", semester: "1st", students: 44, classTeacher: "Dr. Priya Sharma" },
+  { id: "CLS008", name: "CE-B", department: "CE", year: "1st", semester: "1st", students: 36, classTeacher: "—" },
+];
+
+function ClassesPage() {
+  const { toast } = useToast();
+  const [classesList, setClassesList] = useState(initialClasses);
+  const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [editClass, setEditClass] = useState<typeof initialClasses[0] | null>(null);
+  const [deleteClass, setDeleteClass] = useState<typeof initialClasses[0] | null>(null);
+  const [form, setForm] = useState({ name: "", department: "CSE", year: "1st", semester: "1st", classTeacher: "" });
+  const [search, setSearch] = useState("");
+
+  const filtered = classesList.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.department.toLowerCase().includes(search.toLowerCase()));
+
+  const handleAdd = () => {
+    const newClass = {
+      id: `CLS${String(classesList.length + 20).padStart(3, "0")}`,
+      name: form.name,
+      department: form.department,
+      year: form.year,
+      semester: form.semester,
+      students: 0,
+      classTeacher: form.classTeacher || "—",
+    };
+    setClassesList([...classesList, newClass]);
+    setShowAdd(false);
+    setForm({ name: "", department: "CSE", year: "1st", semester: "1st", classTeacher: "" });
+    toast({ title: "Class Added", description: `${form.name} has been created successfully.` });
+  };
+
+  const handleEdit = () => {
+    if (!editClass) return;
+    setClassesList(classesList.map((c) => (c.id === editClass.id ? editClass : c)));
+    setShowEdit(false);
+    toast({ title: "Class Updated", description: `${editClass.name} has been updated.` });
+  };
+
+  const handleDelete = () => {
+    if (!deleteClass) return;
+    setClassesList(classesList.filter((c) => c.id !== deleteClass.id));
+    setShowDelete(false);
+    toast({ title: "Class Removed", description: `${deleteClass.name} has been removed.` });
+  };
+
+  return (
+    <div className="space-y-6 animate-slide-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Classes" value={classesList.length} icon={<School className="w-5 h-5" />} />
+        <StatCard title="CSE" value={classesList.filter(c => c.department === "CSE").length} icon={<Building2 className="w-5 h-5" />} variant="accent" />
+        <StatCard title="ECE" value={classesList.filter(c => c.department === "ECE").length} icon={<Building2 className="w-5 h-5" />} />
+        <StatCard title="Total Students" value={classesList.reduce((sum, c) => sum + c.students, 0)} icon={<Users className="w-5 h-5" />} variant="success" />
+      </div>
+
+      <Card className="shadow-card">
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+          <CardTitle className="text-base font-sans font-semibold">Manage Classes</CardTitle>
+          <div className="flex gap-2">
+            <Input placeholder="Search..." className="h-8 w-40 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Button size="sm" onClick={() => setShowAdd(true)}><UserPlus className="w-4 h-4 mr-1" /> Add Class</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Class Name</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Year</TableHead>
+                <TableHead>Semester</TableHead>
+                <TableHead>Students</TableHead>
+                <TableHead>Class Teacher</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell className="font-mono text-xs">{c.id}</TableCell>
+                  <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{c.department}</TableCell>
+                  <TableCell>{c.year}</TableCell>
+                  <TableCell>{c.semester}</TableCell>
+                  <TableCell>{c.students}</TableCell>
+                  <TableCell className="text-sm">{c.classTeacher}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditClass({ ...c }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => { setDeleteClass(c); setShowDelete(true); }}><Trash2 className="w-3.5 h-3.5" /></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Add Class Dialog */}
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Class</DialogTitle>
+            <DialogDescription>Fill in the details to create a new class.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Class Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. CSE-A" /></div>
+              <div className="space-y-2">
+                <Label>Department</Label>
+                <Select value={form.department} onValueChange={(v) => setForm({ ...form, department: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CSE">CSE</SelectItem>
+                    <SelectItem value="ECE">ECE</SelectItem>
+                    <SelectItem value="ME">ME</SelectItem>
+                    <SelectItem value="CE">CE</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Year</Label>
+                <Select value={form.year} onValueChange={(v) => setForm({ ...form, year: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1st">1st Year</SelectItem>
+                    <SelectItem value="2nd">2nd Year</SelectItem>
+                    <SelectItem value="3rd">3rd Year</SelectItem>
+                    <SelectItem value="4th">4th Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Semester</Label>
+                <Select value={form.semester} onValueChange={(v) => setForm({ ...form, semester: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1st">1st Sem</SelectItem>
+                    <SelectItem value="2nd">2nd Sem</SelectItem>
+                    <SelectItem value="3rd">3rd Sem</SelectItem>
+                    <SelectItem value="4th">4th Sem</SelectItem>
+                    <SelectItem value="5th">5th Sem</SelectItem>
+                    <SelectItem value="6th">6th Sem</SelectItem>
+                    <SelectItem value="7th">7th Sem</SelectItem>
+                    <SelectItem value="8th">8th Sem</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2"><Label>Class Teacher</Label><Input value={form.classTeacher} onChange={(e) => setForm({ ...form, classTeacher: e.target.value })} placeholder="e.g. Dr. Sarah Williams" /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
+            <Button onClick={handleAdd} disabled={!form.name}>Add Class</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Class Dialog */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Class</DialogTitle>
+            <DialogDescription>Update class details.</DialogDescription>
+          </DialogHeader>
+          {editClass && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Class Name</Label><Input value={editClass.name} onChange={(e) => setEditClass({ ...editClass, name: e.target.value })} /></div>
+                <div className="space-y-2">
+                  <Label>Department</Label>
+                  <Select value={editClass.department} onValueChange={(v) => setEditClass({ ...editClass, department: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CSE">CSE</SelectItem>
+                      <SelectItem value="ECE">ECE</SelectItem>
+                      <SelectItem value="ME">ME</SelectItem>
+                      <SelectItem value="CE">CE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Year</Label>
+                  <Select value={editClass.year} onValueChange={(v) => setEditClass({ ...editClass, year: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1st">1st Year</SelectItem>
+                      <SelectItem value="2nd">2nd Year</SelectItem>
+                      <SelectItem value="3rd">3rd Year</SelectItem>
+                      <SelectItem value="4th">4th Year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Semester</Label>
+                  <Select value={editClass.semester} onValueChange={(v) => setEditClass({ ...editClass, semester: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1st">1st Sem</SelectItem>
+                      <SelectItem value="2nd">2nd Sem</SelectItem>
+                      <SelectItem value="3rd">3rd Sem</SelectItem>
+                      <SelectItem value="4th">4th Sem</SelectItem>
+                      <SelectItem value="5th">5th Sem</SelectItem>
+                      <SelectItem value="6th">6th Sem</SelectItem>
+                      <SelectItem value="7th">7th Sem</SelectItem>
+                      <SelectItem value="8th">8th Sem</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2"><Label>Class Teacher</Label><Input value={editClass.classTeacher} onChange={(e) => setEditClass({ ...editClass, classTeacher: e.target.value })} /></div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEdit(false)}>Cancel</Button>
+            <Button onClick={handleEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Class</DialogTitle>
+            <DialogDescription>Are you sure you want to remove {deleteClass?.name}? This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDelete(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete}>Remove</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
 
 const AcademicDashboard = () => {
@@ -848,7 +1099,7 @@ const AcademicDashboard = () => {
   if (path === "/academic/students") content = <StudentsPage />;
   else if (path === "/academic/teachers") content = <TeachersPage />;
   else if (path === "/academic/subjects") content = <SubjectsPage />;
-  
+  else if (path === "/academic/classes") content = <ClassesPage />;
   else content = <AcademicDashboardPage />;
 
   return (
