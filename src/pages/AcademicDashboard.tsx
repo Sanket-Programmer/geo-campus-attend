@@ -19,7 +19,7 @@ const navItems = [
   { title: "Students", url: "/academic/students", icon: Users },
   { title: "Teachers", url: "/academic/teachers", icon: GraduationCap },
   { title: "Subjects", url: "/academic/subjects", icon: BookOpen },
-  { title: "Settings", url: "/academic/settings", icon: Settings },
+  
 ];
 
 const departments = [
