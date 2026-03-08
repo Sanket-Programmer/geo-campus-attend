@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
-import { BarChart3, Users, PlayCircle, MapPin, Clock, CalendarDays, StopCircle } from "lucide-react";
+import { BarChart3, Users, PlayCircle, MapPin, Clock, CalendarDays, StopCircle, UserCheck, UserX, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
