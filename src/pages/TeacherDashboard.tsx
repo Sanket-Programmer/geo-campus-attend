@@ -700,8 +700,12 @@ const TeacherDashboard = () => {
     setSessions(prev => [session, ...prev]);
   };
 
+  const handleUpdateSession = (updated: SessionRecord) => {
+    setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
+  };
+
   let content;
-  if (path === "/teacher/sessions") content = <SessionsPage sessions={sessions} />;
+  if (path === "/teacher/sessions") content = <SessionsPage sessions={sessions} onUpdateSession={handleUpdateSession} />;
   else if (path === "/teacher/reports") content = <ReportsPage />;
   else content = <TeacherDashboardPage onSubmitSession={handleSubmitSession} />;
 
