@@ -363,10 +363,12 @@ function TeacherDashboardPage({ onSubmitSession }: { onSubmitSession: (session: 
   );
 }
 
-function SessionsPage({ sessions }: { sessions: SessionRecord[] }) {
+function SessionsPage({ sessions, onUpdateSession }: { sessions: SessionRecord[]; onUpdateSession: (updated: SessionRecord) => void }) {
   const { toast } = useToast();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedSession, setSelectedSession] = useState<SessionRecord | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAttendance, setEditAttendance] = useState<Record<string, boolean>>({});
 
   return (
     <div className="space-y-6 animate-slide-in">
