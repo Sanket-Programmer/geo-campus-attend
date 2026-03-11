@@ -363,10 +363,12 @@ function TeacherDashboardPage({ onSubmitSession }: { onSubmitSession: (session: 
   );
 }
 
-function SessionsPage({ sessions }: { sessions: SessionRecord[] }) {
+function SessionsPage({ sessions, onUpdateSession }: { sessions: SessionRecord[]; onUpdateSession: (updated: SessionRecord) => void }) {
   const { toast } = useToast();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedSession, setSelectedSession] = useState<SessionRecord | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAttendance, setEditAttendance] = useState<Record<string, boolean>>({});
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -417,7 +419,7 @@ function SessionsPage({ sessions }: { sessions: SessionRecord[] }) {
       </Card>
 
       {/* Session Details Dialog */}
-      <Dialog open={!!selectedSession} onOpenChange={(open) => { if (!open) setSelectedSession(null); }}>
+      <Dialog open={!!selectedSession} onOpenChange={(open) => { if (!open) { setSelectedSession(null); setIsEditing(false); } }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -425,7 +427,7 @@ function SessionsPage({ sessions }: { sessions: SessionRecord[] }) {
               Session Details — {selectedSession?.id}
             </DialogTitle>
             <DialogDescription>
-              View attendance details for this session.
+              {isEditing ? "Edit student attendance for this manual session." : "View attendance details for this session."}
             </DialogDescription>
           </DialogHeader>
           {selectedSession && (
@@ -454,22 +456,33 @@ function SessionsPage({ sessions }: { sessions: SessionRecord[] }) {
               <div className="flex items-center gap-4 px-1">
                 <div className="flex items-center gap-1.5 text-sm">
                   <UserCheck className="w-4 h-4 text-success" />
-                  <span className="font-semibold text-success">{selectedSession.present}</span>
+                  <span className="font-semibold text-success">
+                    {isEditing ? Object.values(editAttendance).filter(Boolean).length : selectedSession.present}
+                  </span>
                   <span className="text-muted-foreground">Present</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm">
                   <UserX className="w-4 h-4 text-destructive" />
-                  <span className="font-semibold text-destructive">{selectedSession.total - selectedSession.present}</span>
+                  <span className="font-semibold text-destructive">
+                    {isEditing
+                      ? selectedSession.students.length - Object.values(editAttendance).filter(Boolean).length
+                      : selectedSession.total - selectedSession.present}
+                  </span>
                   <span className="text-muted-foreground">Absent</span>
                 </div>
                 <div className="ml-auto text-sm text-muted-foreground">
-                  Attendance Rate: <span className="font-semibold text-foreground">{Math.round((selectedSession.present / selectedSession.total) * 100)}%</span>
+                  Attendance Rate: <span className="font-semibold text-foreground">
+                    {isEditing
+                      ? Math.round((Object.values(editAttendance).filter(Boolean).length / selectedSession.students.length) * 100)
+                      : Math.round((selectedSession.present / selectedSession.total) * 100)}%
+                  </span>
                 </div>
               </div>
 
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {isEditing && <TableHead className="w-12">Mark</TableHead>}
                     <TableHead>Roll No</TableHead>
                     <TableHead>Student ID</TableHead>
                     <TableHead>Name</TableHead>
@@ -479,20 +492,75 @@ function SessionsPage({ sessions }: { sessions: SessionRecord[] }) {
                 </TableHeader>
                 <TableBody>
                   {selectedSession.students.map((st) => (
-                    <TableRow key={st.id} className={st.status === "present" ? "bg-success/5" : ""}>
+                    <TableRow key={st.id} className={
+                      isEditing
+                        ? (editAttendance[st.id] ? "bg-success/5" : "")
+                        : (st.status === "present" ? "bg-success/5" : "")
+                    }>
+                      {isEditing && (
+                        <TableCell>
+                          <Checkbox
+                            checked={!!editAttendance[st.id]}
+                            onCheckedChange={(c) => setEditAttendance(prev => ({ ...prev, [st.id]: !!c }))}
+                          />
+                        </TableCell>
+                      )}
                       <TableCell className="font-mono text-xs">{st.roll}</TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">{st.id}</TableCell>
                       <TableCell className="font-medium">{st.name}</TableCell>
                       <TableCell className="text-muted-foreground">{st.time}</TableCell>
-                      <TableCell><StatusBadge status={st.status} /></TableCell>
+                      <TableCell>
+                        <StatusBadge status={isEditing ? (editAttendance[st.id] ? "present" : "absent") : st.status} />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedSession(null)}>Close</Button>
+          <DialogFooter className="gap-2">
+            {selectedSession && !selectedSession.geo && !isEditing && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const att: Record<string, boolean> = {};
+                  selectedSession.students.forEach(st => { att[st.id] = st.status === "present"; });
+                  setEditAttendance(att);
+                  setIsEditing(true);
+                }}
+              >
+                Edit Attendance
+              </Button>
+            )}
+            {isEditing && (
+              <Button
+                onClick={() => {
+                  if (!selectedSession) return;
+                  const now = new Date();
+                  const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+                  const updatedStudents = selectedSession.students.map(st => ({
+                    ...st,
+                    status: editAttendance[st.id] ? "present" as const : "absent" as const,
+                    time: editAttendance[st.id] ? (st.status === "present" ? st.time : timeStr) : "-",
+                  }));
+                  const presentCount = updatedStudents.filter(s => s.status === "present").length;
+                  const updatedSession: SessionRecord = {
+                    ...selectedSession,
+                    students: updatedStudents,
+                    present: presentCount,
+                  };
+                  onUpdateSession(updatedSession);
+                  setSelectedSession(updatedSession);
+                  setIsEditing(false);
+                  toast({ title: "Attendance Updated", description: `Updated attendance: ${presentCount}/${updatedStudents.length} present.` });
+                }}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-1" /> Update Attendance
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => { setSelectedSession(null); setIsEditing(false); }}>
+              {isEditing ? "Cancel" : "Close"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -632,8 +700,12 @@ const TeacherDashboard = () => {
     setSessions(prev => [session, ...prev]);
   };
 
+  const handleUpdateSession = (updated: SessionRecord) => {
+    setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
+  };
+
   let content;
-  if (path === "/teacher/sessions") content = <SessionsPage sessions={sessions} />;
+  if (path === "/teacher/sessions") content = <SessionsPage sessions={sessions} onUpdateSession={handleUpdateSession} />;
   else if (path === "/teacher/reports") content = <ReportsPage />;
   else content = <TeacherDashboardPage onSubmitSession={handleSubmitSession} />;
 
