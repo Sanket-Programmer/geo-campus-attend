@@ -17,16 +17,60 @@ const navItems = [
   { title: "Reports", url: "/exam-controller/reports", icon: FileText },
 ];
 
+// Subject-to-department mapping
+const subjectsByDept: Record<string, { code: string; name: string }[]> = {
+  CSE: [
+    { code: "CS101", name: "Data Structures" },
+    { code: "CS102", name: "Operating Systems" },
+    { code: "CS103", name: "Database Management" },
+  ],
+  ECE: [
+    { code: "EC101", name: "Digital Electronics" },
+    { code: "EC102", name: "Signal Processing" },
+  ],
+  ME: [
+    { code: "ME101", name: "Thermodynamics" },
+    { code: "ME102", name: "Fluid Mechanics" },
+  ],
+};
+
+// Students with subjects they are registered in and per-subject attendance
 const students = [
-  { id: "STU001", name: "Alex Johnson", dept: "CSE", attendance: 90, status: "eligible" as const },
-  { id: "STU002", name: "Maria Garcia", dept: "CSE", attendance: 87, status: "eligible" as const },
-  { id: "STU003", name: "James Wilson", dept: "CSE", attendance: 70, status: "not-eligible" as const },
-  { id: "STU004", name: "Emily Davis", dept: "ECE", attendance: 61, status: "not-eligible" as const },
-  { id: "STU005", name: "Robert Brown", dept: "CSE", attendance: 82, status: "eligible" as const },
-  { id: "STU006", name: "Sarah Miller", dept: "ECE", attendance: 78, status: "eligible" as const },
-  { id: "STU007", name: "David Lee", dept: "ME", attendance: 55, status: "not-eligible" as const },
-  { id: "STU008", name: "Lisa Wang", dept: "CSE", attendance: 95, status: "eligible" as const },
+  { id: "STU001", name: "Alex Johnson", dept: "CSE", subjects: [
+    { code: "CS101", attendance: 90 }, { code: "CS102", attendance: 85 }, { code: "CS103", attendance: 92 },
+  ]},
+  { id: "STU002", name: "Maria Garcia", dept: "CSE", subjects: [
+    { code: "CS101", attendance: 87 }, { code: "CS102", attendance: 80 },
+  ]},
+  { id: "STU003", name: "James Wilson", dept: "CSE", subjects: [
+    { code: "CS101", attendance: 70 }, { code: "CS103", attendance: 65 },
+  ]},
+  { id: "STU004", name: "Emily Davis", dept: "ECE", subjects: [
+    { code: "EC101", attendance: 61 }, { code: "EC102", attendance: 72 },
+  ]},
+  { id: "STU005", name: "Robert Brown", dept: "CSE", subjects: [
+    { code: "CS101", attendance: 82 }, { code: "CS102", attendance: 78 }, { code: "CS103", attendance: 88 },
+  ]},
+  { id: "STU006", name: "Sarah Miller", dept: "ECE", subjects: [
+    { code: "EC101", attendance: 78 }, { code: "EC102", attendance: 84 },
+  ]},
+  { id: "STU007", name: "David Lee", dept: "ME", subjects: [
+    { code: "ME101", attendance: 55 }, { code: "ME102", attendance: 60 },
+  ]},
+  { id: "STU008", name: "Lisa Wang", dept: "CSE", subjects: [
+    { code: "CS101", attendance: 95 }, { code: "CS102", attendance: 91 }, { code: "CS103", attendance: 97 },
+  ]},
 ];
+
+// Helper to compute overall attendance for a student
+function getOverallAttendance(student: typeof students[0]) {
+  const total = student.subjects.reduce((sum, s) => sum + s.attendance, 0);
+  return Math.round(total / student.subjects.length);
+}
+
+function getStatus(attendance: number): "eligible" | "not-eligible" {
+  return attendance >= 75 ? "eligible" : "not-eligible";
+}
 
 function ExamDashboardPage() {
   const eligible = students.filter((s) => s.status === "eligible").length;
