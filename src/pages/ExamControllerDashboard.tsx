@@ -73,7 +73,7 @@ function getStatus(attendance: number): "eligible" | "not-eligible" {
 }
 
 function ExamDashboardPage() {
-  const eligible = students.filter((s) => s.status === "eligible").length;
+  const eligible = students.filter((s) => getStatus(getOverallAttendance(s)) === "eligible").length;
   const notEligible = students.length - eligible;
 
   return (
@@ -101,15 +101,19 @@ function ExamDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.dept}</TableCell>
-                  <TableCell className={`font-semibold ${s.attendance >= 75 ? "text-success" : "text-destructive"}`}>{s.attendance}%</TableCell>
-                  <TableCell><StatusBadge status={s.status} /></TableCell>
-                </TableRow>
-              ))}
+              {students.map((s) => {
+                const att = getOverallAttendance(s);
+                const status = getStatus(att);
+                return (
+                  <TableRow key={s.id}>
+                    <TableCell className="font-mono text-xs">{s.id}</TableCell>
+                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{s.dept}</TableCell>
+                    <TableCell className={`font-semibold ${att >= 75 ? "text-success" : "text-destructive"}`}>{att}%</TableCell>
+                    <TableCell><StatusBadge status={status} /></TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -122,15 +126,49 @@ function EligibilityPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [dept, setDept] = useState("all");
+  const [subject, setSubject] = useState("all");
 
-  const filtered = students.filter((s) => {
-    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" || s.status === filter;
-    const matchDept = dept === "all" || s.dept === dept;
-    return matchSearch && matchFilter && matchDept;
-  });
+  // When department changes, reset subject filter
+  const handleDeptChange = (value: string) => {
+    setDept(value);
+    setSubject("all");
+  };
 
-  const eligible = filtered.filter((s) => s.status === "eligible").length;
+  // Get available subjects based on selected department
+  const availableSubjects = dept === "all"
+    ? Object.values(subjectsByDept).flat()
+    : subjectsByDept[dept] || [];
+
+  // Build filtered student list with subject-aware attendance
+  const filtered = students
+    .filter((s) => {
+      const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase());
+      const matchDept = dept === "all" || s.dept === dept;
+      // If a subject is selected, only show students registered in that subject
+      const matchSubject = subject === "all" || s.subjects.some((sub) => sub.code === subject);
+      return matchSearch && matchDept && matchSubject;
+    })
+    .map((s) => {
+      // Calculate attendance based on subject filter
+      let attendance: number;
+      if (subject !== "all") {
+        const sub = s.subjects.find((sub) => sub.code === subject);
+        attendance = sub ? sub.attendance : 0;
+      } else {
+        attendance = getOverallAttendance(s);
+      }
+      const status = getStatus(attendance);
+      const matchFilter = filter === "all" || status === filter;
+      return matchFilter ? { ...s, displayAttendance: attendance, displayStatus: status } : null;
+    })
+    .filter(Boolean) as (typeof students[0] & { displayAttendance: number; displayStatus: "eligible" | "not-eligible" })[];
+
+  const eligible = filtered.filter((s) => s.displayStatus === "eligible").length;
+
+  // Get subject name for display
+  const selectedSubjectName = subject !== "all"
+    ? availableSubjects.find((s) => s.code === subject)?.name || subject
+    : null;
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -143,7 +181,12 @@ function EligibilityPage() {
       <Card className="shadow-card">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="text-base font-sans font-semibold">Eligibility Details</CardTitle>
+            <CardTitle className="text-base font-sans font-semibold">
+              Eligibility Details
+              {selectedSubjectName && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">— {selectedSubjectName}</span>
+              )}
+            </CardTitle>
             <div className="flex gap-2 flex-wrap">
               <Input placeholder="Search student..." className="h-8 w-48 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
               <Select value={filter} onValueChange={setFilter}>
@@ -154,13 +197,22 @@ function EligibilityPage() {
                   <SelectItem value="not-eligible">Not Eligible</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={dept} onValueChange={setDept}>
+              <Select value={dept} onValueChange={handleDeptChange}>
                 <SelectTrigger className="h-8 w-28 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Dept</SelectItem>
                   <SelectItem value="CSE">CSE</SelectItem>
                   <SelectItem value="ECE">ECE</SelectItem>
                   <SelectItem value="ME">ME</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={subject} onValueChange={setSubject}>
+                <SelectTrigger className="h-8 w-44 text-sm"><SelectValue placeholder="All Subjects" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Subjects</SelectItem>
+                  {availableSubjects.map((sub) => (
+                    <SelectItem key={sub.code} value={sub.code}>{sub.code} - {sub.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -173,7 +225,7 @@ function EligibilityPage() {
                 <TableHead>Student ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Department</TableHead>
-                <TableHead>Attendance %</TableHead>
+                <TableHead>{subject !== "all" ? "Subject Attendance %" : "Overall Attendance %"}</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -183,8 +235,8 @@ function EligibilityPage() {
                   <TableCell className="font-mono text-xs">{s.id}</TableCell>
                   <TableCell className="font-medium">{s.name}</TableCell>
                   <TableCell className="text-muted-foreground">{s.dept}</TableCell>
-                  <TableCell className={`font-semibold ${s.attendance >= 75 ? "text-success" : "text-destructive"}`}>{s.attendance}%</TableCell>
-                  <TableCell><StatusBadge status={s.status} /></TableCell>
+                  <TableCell className={`font-semibold ${s.displayAttendance >= 75 ? "text-success" : "text-destructive"}`}>{s.displayAttendance}%</TableCell>
+                  <TableCell><StatusBadge status={s.displayStatus} /></TableCell>
                 </TableRow>
               ))}
               {filtered.length === 0 && (
