@@ -125,8 +125,8 @@ function ExamDashboardPage() {
 function EligibilityPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [dept, setDept] = useState("all");
-  const [subject, setSubject] = useState("all");
+  const [dept, setDept] = useState("CSE");
+  const [subject, setSubject] = useState("CS101");
 
   // When department changes, reset subject filter
   const handleDeptChange = (value: string) => {
@@ -225,7 +225,7 @@ function EligibilityPage() {
                 <TableHead>Student ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Department</TableHead>
-                <TableHead>{subject !== "all" ? "Subject Attendance %" : "Overall Attendance %"}</TableHead>
+                <TableHead>Subject Attendance %</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
