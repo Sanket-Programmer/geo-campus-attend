@@ -1,361 +1,739 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
-import { BarChart3, Users, PlayCircle, MapPin, Clock, CalendarDays, StopCircle, UserCheck, UserX, CheckCircle2, Eye } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  PlayCircle,
+  MapPin,
+  CalendarDays,
+  StopCircle,
+  UserCheck,
+  UserX,
+  CheckCircle2,
+  FileText,
+  BookOpen,
+  Users,
+  Fingerprint,
+  GraduationCap,
+  MousePointer2,
+  AlertCircle,
+  ChevronRight,
+  Filter,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "../components/AuthContext";
+import { Progress } from "@/components/ui/progress";
+import { authFetch } from "../../utils/authFetch";
 
 interface SessionRecord {
   id: string;
   subject: string;
+  code: string;
   date: string;
   time: string;
+  class_name: string;
   present: number;
   total: number;
   geo: boolean;
-  students: { id: string; name: string; roll: string; status: "present" | "absent"; time: string }[];
+  students: {
+    id: string;
+    attendance_id: string;
+    name: string;
+    status: "present" | "absent";
+    time: string;
+  }[];
 }
 
-const allStudents = [
-  { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001" },
-  { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002" },
-  { id: "STU003", name: "James Wilson", roll: "CSE-A-003" },
-  { id: "STU004", name: "Emily Davis", roll: "CSE-A-004" },
-  { id: "STU005", name: "Robert Brown", roll: "CSE-A-005" },
-  { id: "STU006", name: "Sarah Miller", roll: "CSE-A-006" },
-  { id: "STU007", name: "Daniel Lee", roll: "CSE-A-007" },
-  { id: "STU008", name: "Jessica Taylor", roll: "CSE-A-008" },
-  { id: "STU009", name: "Michael Anderson", roll: "CSE-A-009" },
-  { id: "STU010", name: "Sophia Martinez", roll: "CSE-A-010" },
-];
-
 const navItems = [
-  { title: "Dashboard", url: "/teacher", icon: BarChart3 },
-  { title: "Sessions", url: "/teacher/sessions", icon: PlayCircle },
-  { title: "Reports", url: "/teacher/reports", icon: CalendarDays },
+  { title: "Sessions History", url: "/teacher", icon: FileText },
+  { title: "Eligibility Reports", url: "/teacher/reports", icon: CalendarDays },
+  { title: "Attendance Console", url: "/teacher/console", icon: PlayCircle },
 ];
 
-const liveStudents = [
-  { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", time: "09:02 AM", status: "present" as const },
-  { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", time: "09:03 AM", status: "present" as const },
-  { id: "STU003", name: "James Wilson", roll: "CSE-A-003", time: "09:05 AM", status: "present" as const },
-  { id: "STU004", name: "Emily Davis", roll: "CSE-A-004", time: "-", status: "absent" as const },
-  { id: "STU005", name: "Robert Brown", roll: "CSE-A-005", time: "09:08 AM", status: "present" as const },
-  { id: "STU006", name: "Sarah Miller", roll: "CSE-A-006", time: "-", status: "absent" as const },
-];
-
-const reportData = [
-  { student: "Alex Johnson", id: "STU001", jan: 92, feb: 88, mar: 90, overall: 90 },
-  { student: "Maria Garcia", id: "STU002", jan: 85, feb: 90, mar: 87, overall: 87 },
-  { student: "James Wilson", id: "STU003", jan: 70, feb: 68, mar: 72, overall: 70 },
-  { student: "Emily Davis", id: "STU004", jan: 60, feb: 65, mar: 58, overall: 61 },
-];
-
-const initialSessions: SessionRecord[] = [
-  {
-    id: "SES001", subject: "CS201 - Data Structures", date: "2026-03-07", time: "09:00 - 10:00 AM", present: 42, total: 48, geo: true,
-    students: [
-      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "09:02 AM" },
-      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "present", time: "09:03 AM" },
-      { id: "STU003", name: "James Wilson", roll: "CSE-A-003", status: "present", time: "09:05 AM" },
-      { id: "STU004", name: "Emily Davis", roll: "CSE-A-004", status: "absent", time: "-" },
-      { id: "STU005", name: "Robert Brown", roll: "CSE-A-005", status: "present", time: "09:08 AM" },
-    ],
-  },
-  {
-    id: "SES002", subject: "CS301 - Database Systems", date: "2026-03-07", time: "11:00 - 12:00 PM", present: 38, total: 45, geo: true,
-    students: [
-      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "11:01 AM" },
-      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "absent", time: "-" },
-      { id: "STU003", name: "James Wilson", roll: "CSE-A-003", status: "present", time: "11:04 AM" },
-    ],
-  },
-  {
-    id: "SES003", subject: "CS201 - Data Structures", date: "2026-03-06", time: "09:00 - 10:00 AM", present: 44, total: 48, geo: false,
-    students: [
-      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "09:00 AM" },
-      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "present", time: "09:00 AM" },
-      { id: "STU004", name: "Emily Davis", roll: "CSE-A-004", status: "absent", time: "-" },
-    ],
-  },
-  {
-    id: "SES004", subject: "CS301 - Database Systems", date: "2026-03-06", time: "11:00 - 12:00 PM", present: 40, total: 45, geo: true,
-    students: [
-      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "11:02 AM" },
-      { id: "STU003", name: "James Wilson", roll: "CSE-A-003", status: "present", time: "11:05 AM" },
-      { id: "STU005", name: "Robert Brown", roll: "CSE-A-005", status: "absent", time: "-" },
-    ],
-  },
-  {
-    id: "SES005", subject: "CS201 - Data Structures", date: "2026-03-05", time: "09:00 - 10:00 AM", present: 46, total: 48, geo: true,
-    students: [
-      { id: "STU001", name: "Alex Johnson", roll: "CSE-A-001", status: "present", time: "09:01 AM" },
-      { id: "STU002", name: "Maria Garcia", roll: "CSE-A-002", status: "present", time: "09:02 AM" },
-    ],
-  },
-];
-
-// Shared state across pages
-let sharedSessions = [...initialSessions];
-let sessionCounter = 6;
-
-function TeacherDashboardPage({ onSubmitSession }: { onSubmitSession: (session: SessionRecord) => void }) {
+function TeacherDashboardPage({
+  fetchSessions,
+}: {
+  onSubmitSession: (session: any) => void;
+  fetchSessions: () => Promise<void>;
+}) {
   const { toast } = useToast();
-  const [sessionActive, setSessionActive] = useState(true);
+  // ... (State variables remain exactly as in your original code)
+  const [sessionActive, setSessionActive] = useState(false);
   const [geoEnabled, setGeoEnabled] = useState(true);
-  const [manualAttendance, setManualAttendance] = useState<Record<string, boolean>>({});
-  const [selectAll, setSelectAll] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState("cs201");
-  const [selectedClass, setSelectedClass] = useState("cse-a");
+  const [manualAttendance, setManualAttendance] = useState<
+    Record<string, boolean>
+  >({});
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [liveStudents, setLiveStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
+  const [assignments, setAssignments] = useState([]);
 
-  const subjectMap: Record<string, string> = {
-    cs201: "CS201 - Data Structures",
-    cs301: "CS301 - Database Systems",
-    cs302: "CS302 - Operating Systems",
-  };
+  // ... (All original useEffects and handlers go here - keep logic identical)
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (sessionActive) {
+        e.preventDefault();
+        e.returnValue = "Session is active!";
+      }
+    };
 
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked);
-    const updated: Record<string, boolean> = {};
-    allStudents.forEach((s) => { updated[s.id] = checked; });
-    setManualAttendance(updated);
-  };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [sessionActive]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("activeSession");
+
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setSessionId(parsed.session_id);
+      setSessionActive(true);
+    }
+  }, []);
 
   const handleToggleStudent = (id: string, checked: boolean) => {
     const updated = { ...manualAttendance, [id]: checked };
     setManualAttendance(updated);
-    setSelectAll(allStudents.every((s) => updated[s.id]));
   };
 
   const presentCount = Object.values(manualAttendance).filter(Boolean).length;
-  const geoPresentCount = liveStudents.filter(s => s.status === "present").length;
+  const geoPresentCount = liveStudents.filter(
+    (s) => s.status === "present",
+  ).length;
 
-  const handleSubmitGeo = () => {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-    const newSession: SessionRecord = {
-      id: `SES${String(sessionCounter++).padStart(3, "0")}`,
-      subject: subjectMap[selectedSubject] || "CS201 - Data Structures",
-      date: now.toISOString().split("T")[0],
-      time: `${timeStr} (Geo Session)`,
-      present: geoPresentCount,
-      total: liveStudents.length,
-      geo: true,
-      students: liveStudents.map(s => ({ ...s, roll: s.roll })),
-    };
-    onSubmitSession(newSession);
+  // const handleSubmitGeo = async () => {
+  //   try {
+  //     await fetch(`http://localhost:5000/api/attendance/end/${sessionId}`, {
+  //       method: "PUT",
+  //     });
+
+  //     await fetchSessions();
+
+  //     setSessionActive(false);
+  //     localStorage.removeItem("activeSession");
+  //     toast({
+  //       title: "Geo-Attendance submitted successfully!",
+  //       variant: "default",
+  //     });
+  //   } catch (err) {
+  //     console.error("SUBMIT ERROR:", err);
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to submit attendance.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  const handleSubmitGeo = async () => {
+  try {
+    const res = await authFetch(
+      `http://localhost:5000/api/attendance/end/${sessionId}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (!res) return;
+
+    if (!res.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to submit attendance.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await fetchSessions();
+
     setSessionActive(false);
-    toast({ title: "Geo Attendance Submitted", description: `Session recorded: ${geoPresentCount}/${liveStudents.length} present.` });
+    localStorage.removeItem("activeSession");
+
+    toast({
+      title: "Geo-Attendance submitted successfully!",
+      variant: "default",
+    });
+  } catch (err) {
+    console.error("SUBMIT ERROR:", err);
+    toast({
+      title: "Error",
+      description: "Failed to submit attendance.",
+      variant: "destructive",
+    });
+  }
+};
+
+  const handleSubmitManual = async () => {
+    const token = localStorage.getItem("token");
+
+    const records = allStudents.map((student) => ({
+      student_id: student.regd,
+      status: manualAttendance[student.regd] ? "present" : "absent",
+    }));
+
+    const res = await authFetch(
+      "http://localhost:5000/api/attendance/mark-manual-bulk",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          records,
+        }),
+      },
+    );
+    if (!res) return;
+    if (!res.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to submit attendance",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await fetchSessions();
+
+    setSessionActive(false);
+    localStorage.removeItem("activeSession");
+    toast({
+      title: "Manual Attendance submitted successfully!",
+      variant: "default",
+    });
   };
 
-  const handleSubmitManual = () => {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-    const newSession: SessionRecord = {
-      id: `SES${String(sessionCounter++).padStart(3, "0")}`,
-      subject: subjectMap[selectedSubject] || "CS201 - Data Structures",
-      date: now.toISOString().split("T")[0],
-      time: `${timeStr} (Manual)`,
-      present: presentCount,
-      total: allStudents.length,
-      geo: false,
-      students: allStudents.map(s => ({
-        ...s,
-        status: manualAttendance[s.id] ? "present" as const : "absent" as const,
-        time: manualAttendance[s.id] ? timeStr : "-",
-      })),
-    };
-    onSubmitSession(newSession);
-    setSessionActive(false);
-    toast({ title: "Manual Attendance Submitted", description: `Marked ${presentCount} out of ${allStudents.length} students as present.` });
+  const startSession = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!selectedSubject || !selectedClass) {
+      toast({
+        title: "Missing Fields",
+        description:
+          "Please select both Subject and Class before starting session.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (sessionActive) {
+      toast({
+        title: "Session Already Active",
+        description: "End current session first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (geoEnabled) {
+      if (!navigator.geolocation) {
+        toast({
+          title: "Geolocation Not Supported",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const res = await authFetch(
+              "http://localhost:5000/api/attendance/start",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  subject_id: selectedSubject,
+                  class_id: selectedClass,
+                  latitude: pos.coords.latitude,
+                  longitude: pos.coords.longitude,
+                  radius: 50,
+                  geolocation_enabled: true,
+                }),
+              },
+            );
+            if (!res) return;
+            const data = await res.json();
+
+            localStorage.setItem(
+              "activeSession",
+              JSON.stringify({ session_id: data.session_id }),
+            );
+
+            setSessionId(data.session_id);
+            setSessionActive(true);
+
+            toast({ title: "Geo Session Started" });
+          } catch {
+            toast({ title: "Failed to start session", variant: "destructive" });
+          }
+        },
+        () => {
+          toast({
+            title: "Location Required",
+            description: "Enable location for geo attendance.",
+            variant: "destructive",
+          });
+        },
+      );
+    } else {
+      try {
+        const res = await authFetch("http://localhost:5000/api/attendance/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            subject_id: selectedSubject,
+            class_id: selectedClass,
+            latitude: null,
+            longitude: null,
+            radius: null,
+            geolocation_enabled: false,
+          }),
+        });
+        if (!res) return;
+        const data = await res.json();
+
+        localStorage.setItem(
+          "activeSession",
+          JSON.stringify({ session_id: data.session_id }),
+        );
+
+        setSessionId(data.session_id);
+        setSessionActive(true);
+
+        toast({ title: "Manual Session Started" });
+      } catch {
+        toast({ title: "Failed to start session", variant: "destructive" });
+      }
+    }
   };
+
+  // const endSession = async () => {
+  //   const token = localStorage.getItem("token");
+
+  //   await fetch(`http://localhost:5000/api/attendance/end/${sessionId}`, {
+  //     method: "PUT",
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   });
+  //   localStorage.removeItem("activeSession");
+  //   setSessionActive(false);
+  // };
+
+
+const endSession = async () => {
+  const token = localStorage.getItem("token");
+
+  const res = await authFetch(
+    `http://localhost:5000/api/attendance/end/${sessionId}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!res) return; 
+
+  if (!res.ok) {
+    console.log("Failed to end session");
+    return;
+  }
+
+  localStorage.removeItem("activeSession");
+  setSessionActive(false);
+};
+
+  useEffect(() => {
+    if (!sessionId || !sessionActive) return;
+
+    const interval = setInterval(async () => {
+      const token = localStorage.getItem("token");
+
+      const res = await authFetch(
+        `http://localhost:5000/api/attendance/session/${sessionId}/students`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (!res) return;
+      const data = await res.json();
+
+      setLiveStudents(data);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [sessionId, sessionActive]);
+
+  const fetchAllStudents = async () => {
+    if (!selectedClass || !selectedSubject) return;
+    const token = localStorage.getItem("token");
+
+    const res = await authFetch(
+      `http://localhost:5000/api/students?class=${selectedClass}&subject=${selectedSubject}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (!res) return;
+    const data = await res.json();
+    setAllStudents(data);
+  };
+
+  useEffect(() => {
+    if (!geoEnabled && selectedClass && selectedSubject) {
+      fetchAllStudents();
+    }
+  }, [geoEnabled, selectedClass, selectedSubject]);
+
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      const token = localStorage.getItem("token");
+
+      const res = await authFetch(
+        "http://localhost:5000/api/teachers/assignments",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (!res) return;
+      const data = await res.json();
+      setAssignments(data);
+    };
+    fetchAssignments();
+  }, []);
 
   return (
-    <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Students" value="156" icon={<Users className="w-5 h-5" />} />
-        <StatCard title="Active Session" value="CS201" subtitle="Data Structures" icon={<PlayCircle className="w-5 h-5" />} variant="accent" />
-        <StatCard title="Present Today" value={geoEnabled ? String(geoPresentCount) : String(presentCount)} subtitle={`out of ${geoEnabled ? liveStudents.length : allStudents.length}`} icon={<BarChart3 className="w-5 h-5" />} variant="success" />
-        <StatCard title="Geo-Attendance" value={geoEnabled ? "Enabled" : "Disabled"} icon={<MapPin className="w-5 h-5" />} variant={geoEnabled ? "accent" : "default"} />
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-foreground">
+            Attendance Console
+          </h1>
+          <p className="text-muted-foreground font-medium">
+            Manage live sessions and track student participation.
+          </p>
+        </div>
+
+        {sessionActive && (
+          <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 animate-pulse">
+            <div className="h-2 w-2 rounded-full bg-primary" />
+            <span className="text-xs font-black uppercase tracking-widest text-primary">
+              Live Session Active
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="shadow-card">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-sans font-semibold">Session Controls</CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column: Controls (Dictates the row height) */}
+        <Card className="lg:col-span-4 border-none shadow-md bg-card/60 ring-1 ring-white/10 overflow-hidden h-fit lg:h-auto">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold flex items-center gap-2">
+              <Fingerprint className="h-5 w-5 text-primary" />
+              Session Setup
+            </CardTitle>
+            <CardDescription>Configure your class parameters</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Subject</Label>
-              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cs201">CS201 - Data Structures</SelectItem>
-                  <SelectItem value="cs301">CS301 - Database Systems</SelectItem>
-                  <SelectItem value="cs302">CS302 - Operating Systems</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Class</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cse-a">CSE - Section A</SelectItem>
-                  <SelectItem value="cse-b">CSE - Section B</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <Label className="text-sm">Geo-Attendance</Label>
-              <Switch checked={geoEnabled} onCheckedChange={setGeoEnabled} />
-            </div>
-            {!geoEnabled && (
-              <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-center">
-                <p className="text-xs font-medium text-warning">Manual Mode Active</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Mark attendance manually below</p>
+
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Subject
+                </Label>
+                <Select
+                  value={selectedSubject}
+                  onValueChange={setSelectedSubject}
+                >
+                  <SelectTrigger className="h-12 bg-background/50 border-border/50 rounded-xl focus:ring-primary/20 transition-all">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 opacity-50" />
+                      <SelectValue placeholder="Select Subject" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border/40 backdrop-blur-xl">
+                    {Array.from(
+                      new Map(assignments.map((a) => [a.subject_id, a])).values(),
+                    ).map((a) => (
+                      <SelectItem
+                        key={a.subject_id}
+                        value={a.subject_id}
+                        className="rounded-lg my-1"
+                      >
+                        {a.subject_code} - {a.subject_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-            {geoEnabled && (
-              <div className={`rounded-lg border p-3 text-center ${sessionActive ? "bg-accent/10 border-accent/20" : "bg-muted/30"}`}>
-                <div className="flex items-center justify-center gap-1.5 text-xs mb-1">
-                  {sessionActive ? (
-                    <><span className="w-2 h-2 rounded-full bg-accent animate-pulse" /><span className="text-accent">Session Active</span></>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Class
+                </Label>
+                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <SelectTrigger className="h-12 bg-background/50 border-border/50 rounded-xl focus:ring-primary/20 transition-all">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4 opacity-50" />
+                      <SelectValue placeholder="Select Class" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border/40 backdrop-blur-xl">
+                    {Array.from(
+                      new Map(assignments.map((a) => [a.class_id, a])).values(),
+                    ).map((a) => (
+                      <SelectItem
+                        key={a.class_id}
+                        value={String(a.class_id)}
+                        className="rounded-lg my-1"
+                      >
+                        {a.class_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {geoEnabled ? (
+                    <>
+                      <MapPin className="h-4 w-4 text-primary" />
+                      <Label className="font-bold text-sm">
+                        Geo-Verification Mode
+                      </Label>
+                    </>
                   ) : (
-                    <span className="text-muted-foreground">No Active Session</span>
+                    <>
+                      <MousePointer2 className="h-4 w-4 text-warning" />
+                      <Label className="font-bold text-sm">Manual Mode</Label>
+                    </>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">Room 301, Block A · 50m radius</p>
+                <Switch
+                  checked={geoEnabled}
+                  onCheckedChange={setGeoEnabled}
+                  disabled={!selectedSubject || !selectedClass}
+                />
               </div>
-            )}
-            <div className="grid grid-cols-2 gap-2">
+              <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                {geoEnabled
+                  ? "Radius-based verification enabled. Students must be within 100m."
+                  : "Manual attendance mode. You will verify students via the checklist."}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <Button
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-                disabled={sessionActive}
-                onClick={() => { setSessionActive(true); toast({ title: "Session Started", description: "Attendance session is now active." }); }}
+                size="lg"
+                className="rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-primary/20"
+                disabled={!selectedSubject || !selectedClass || sessionActive}
+                onClick={startSession}
               >
-                <PlayCircle className="w-4 h-4 mr-1" /> Start
+                <PlayCircle className="w-5 h-5 mr-2" /> Start
               </Button>
               <Button
-                variant="outline"
+                size="lg"
+                variant="destructive"
+                className="rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-rose-500/20"
                 disabled={!sessionActive}
-                onClick={() => { setSessionActive(false); toast({ title: "Session Ended", description: "Attendance session has been closed." }); }}
+                onClick={endSession}
               >
-                <StopCircle className="w-4 h-4 mr-1" /> End
+                <StopCircle className="w-5 h-5 mr-2" /> End
               </Button>
+            </div>
+
+            <div className="flex gap-2 p-3 bg-rose-500/5 rounded-xl border border-rose-500/10">
+              <AlertCircle className="h-3 w-3 text-rose-400 shrink-0" />
+              <p className="text-[10px] text-rose-400 font-bold leading-tight uppercase">
+                Warning: Ensure correct subject & class pairing.
+              </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 shadow-card">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-sans font-semibold">
-              {geoEnabled ? "Live Attendance (Geo)" : "Manual Attendance"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {geoEnabled ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <UserCheck className="w-4 h-4 text-success" />
-                      <span className="font-medium text-success">{geoPresentCount}</span>
-                      <span className="text-muted-foreground">Present</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <UserX className="w-4 h-4 text-destructive" />
-                      <span className="font-medium text-destructive">{liveStudents.length - geoPresentCount}</span>
-                      <span className="text-muted-foreground">Absent</span>
-                    </div>
-                  </div>
-                  <Button size="sm" onClick={handleSubmitGeo} disabled={!sessionActive}>
-                    <CheckCircle2 className="w-4 h-4 mr-1" /> Submit Attendance
-                  </Button>
-                </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Student ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Time</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {liveStudents.map((s) => (
-                      <TableRow key={s.id}>
-                        <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                        <TableCell className="font-medium">{s.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{s.time}</TableCell>
-                        <TableCell><StatusBadge status={s.status} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+        {/* Right Column: Attendance Feed (Molds to Left Column's height) */}
+        <Card className="lg:col-span-8 border-none shadow-md bg-card/60 ring-1 ring-white/10 flex flex-col h-[600px] lg:h-auto overflow-hidden">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/10 pb-6 shrink-0 z-20 bg-card">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Users className="h-5 w-5 text-primary" />
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <UserCheck className="w-4 h-4 text-success" />
-                      <span className="font-medium text-success">{presentCount}</span>
-                      <span className="text-muted-foreground">Present</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <UserX className="w-4 h-4 text-destructive" />
-                      <span className="font-medium text-destructive">{allStudents.length - presentCount}</span>
-                      <span className="text-muted-foreground">Absent</span>
-                    </div>
-                  </div>
-                  <Button size="sm" onClick={handleSubmitManual} disabled={!sessionActive}>
-                    <CheckCircle2 className="w-4 h-4 mr-1" /> Submit Attendance
-                  </Button>
-                </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">
-                        <Checkbox checked={selectAll} onCheckedChange={(c) => handleSelectAll(!!c)} />
+              <div>
+                <CardTitle className="text-lg font-bold">
+                  Attendance Feed
+                </CardTitle>
+                <CardDescription className="text-[10px] uppercase font-bold tracking-wide">
+                  {geoEnabled
+                    ? "Geo-Verification Mode"
+                    : "Manual Override Mode"}
+                </CardDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 bg-background/40 p-2 rounded-xl border border-border/40">
+              <div className="px-3 border-r border-border/40 text-center">
+                <p className="text-[9px] font-black text-emerald-500 tracking-tighter uppercase">
+                  Present
+                </p>
+                <p className="text-lg font-black">
+                  {geoEnabled ? geoPresentCount : presentCount}
+                </p>
+              </div>
+              <div className="px-3 text-center">
+                <p className="text-[9px] font-black text-rose-500 tracking-tighter uppercase">
+                  Absent
+                </p>
+                <p className="text-lg font-black">
+                  {(geoEnabled ? liveStudents.length : allStudents.length) -
+                    (geoEnabled ? geoPresentCount : presentCount)}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+
+          {/* Absolute Wrapper Pattern for Perfect Height Matching */}
+          <CardContent className="p-0 flex-1 relative min-h-[400px] lg:min-h-0">
+            <div className="absolute inset-0 flex flex-col">
+              
+              {/* Scrollable Table Area */}
+              <div className="flex-1 overflow-x-auto overflow-y-auto px-7">
+                <Table className="min-w-[500px] sm:min-w-full relative">
+                  {/* Sticky Header to prevent columns from scrolling away vertically */}
+                  <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border/10 shadow-sm">
+                    <TableRow className="hover:bg-transparent border-none">
+                      {!geoEnabled && (
+                        <TableHead className="w-12 px-6 h-10"></TableHead>
+                      )}
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 h-10">
+                        Regd No.
                       </TableHead>
-                      <TableHead>Roll No</TableHead>
-                      <TableHead>Student ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 h-10">
+                        Name
+                      </TableHead>
+                      <TableHead className="text-right text-[10px] font-black uppercase tracking-widest px-6 h-10">
+                        Status
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {allStudents.map((s) => (
-                      <TableRow key={s.id} className={manualAttendance[s.id] ? "bg-success/5" : ""}>
-                        <TableCell>
-                          <Checkbox
-                            checked={!!manualAttendance[s.id]}
-                            onCheckedChange={(c) => handleToggleStudent(s.id, !!c)}
+                    {(geoEnabled ? liveStudents : allStudents).map((s) => (
+                      <TableRow
+                        key={s.id || s.regd}
+                        className="group border-border/5"
+                      >
+                        {!geoEnabled && (
+                          <TableCell className="px-6">
+                            <Checkbox
+                              checked={!!manualAttendance[s.regd]}
+                              onCheckedChange={(c) =>
+                                handleToggleStudent(s.regd, !!c)
+                              }
+                              className="h-5 w-5 rounded-md border-2"
+                            />
+                          </TableCell>
+                        )}
+                        <TableCell className="font-mono text-[11px] font-bold text-muted-foreground px-6">
+                          {s.id || s.regd}
+                        </TableCell>
+                        <TableCell className="font-bold text-sm px-6">
+                          {s.name}
+                        </TableCell>
+                        <TableCell className="text-right px-6">
+                          <StatusBadge
+                            status={
+                              geoEnabled
+                                ? s.status
+                                : manualAttendance[s.regd]
+                                  ? "present"
+                                  : "absent"
+                            }
                           />
                         </TableCell>
-                        <TableCell className="font-mono text-xs">{s.roll}</TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">{s.id}</TableCell>
-                        <TableCell className="font-medium">{s.name}</TableCell>
-                        <TableCell>
-                          <StatusBadge status={manualAttendance[s.id] ? "present" : "absent"} />
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-            )}
+
+              {/* Fixed Bottom Action Bar */}
+              <div className="shrink-0 p-4 sm:px-6 border-t border-border/10 bg-background/50 backdrop-blur flex justify-end z-20">
+                <Button
+                  onClick={geoEnabled ? handleSubmitGeo : handleSubmitManual}
+                  disabled={
+                    sessionActive ||
+                    (geoEnabled
+                      ? liveStudents.length === 0
+                      : allStudents.length === 0)
+                  }
+                  className="w-full sm:w-auto h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Finalize Attendance
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -363,255 +741,589 @@ function TeacherDashboardPage({ onSubmitSession }: { onSubmitSession: (session: 
   );
 }
 
-function SessionsPage({ sessions, onUpdateSession }: { sessions: SessionRecord[]; onUpdateSession: (updated: SessionRecord) => void }) {
+function SessionsPage({
+  sessions,
+  onUpdateSession,
+}: {
+  sessions: SessionRecord[];
+  onUpdateSession: (updated: SessionRecord) => void;
+}) {
   const { toast } = useToast();
-  const [showCreate, setShowCreate] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<SessionRecord | null>(null);
+  const [selectedSession, setSelectedSession] = useState<SessionRecord | null>(
+    null,
+  );
   const [isEditing, setIsEditing] = useState(false);
-  const [editAttendance, setEditAttendance] = useState<Record<string, boolean>>({});
+  const [editAttendance, setEditAttendance] = useState<Record<string, boolean>>(
+    {},
+  );
 
-  return (
-    <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Sessions" value={String(sessions.length)} icon={<PlayCircle className="w-5 h-5" />} />
-        <StatCard title="This Week" value="8" icon={<CalendarDays className="w-5 h-5" />} variant="accent" />
-        <StatCard title="Avg. Attendance" value="88%" icon={<BarChart3 className="w-5 h-5" />} variant="success" />
-        <StatCard title="Geo Sessions" value={String(sessions.filter(s => s.geo).length)} subtitle={`${Math.round((sessions.filter(s => s.geo).length / sessions.length) * 100)}% of total`} icon={<MapPin className="w-5 h-5" />} />
-      </div>
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-sans font-semibold">Session History</CardTitle>
-          <Button size="sm" onClick={() => setShowCreate(true)}>+ New Session</Button>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Session ID</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Present</TableHead>
-                <TableHead>Geo</TableHead>
-                <TableHead>Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sessions.map((s) => (
-                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedSession(s)}>
-                  <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                  <TableCell className="font-medium">{s.subject}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.date}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.time}</TableCell>
-                  <TableCell><span className="font-semibold text-success">{s.present}</span>/{s.total}</TableCell>
-                  <TableCell>{s.geo ? <span className="text-xs text-accent font-medium">Enabled</span> : <span className="text-xs text-muted-foreground">Disabled</span>}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSession(s); }}>
-                      <Eye className="w-4 h-4 mr-1" /> View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+  const currentMonthSessions = sessions.filter((s) => {
+    const sessionDate = new Date(s.date);
+    return (
+      sessionDate.getMonth() === currentMonth &&
+      sessionDate.getFullYear() === currentYear
+    );
+  });
+
+  // --- START: PRESERVED BACKEND LOGIC ---
+  const fetchSessionDetails = async (sessionId) => {
+    const token = localStorage.getItem("token");
+
+    const res = await authFetch(
+      `http://localhost:5000/api/attendance/session/${sessionId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (!res) return;
+    const data = await res.json();
+    console.log(data);
+
+    setSelectedSession((prev) => {
+      if (!prev) return null;
+
+      return {
+        ...prev,
+        id: data.id,
+        class_name: data.class_name,
+        students: data.students || [],
+      };
+    });
+  };
+
+  const updateAttendance = async () => {
+  const token = localStorage.getItem("token");
+
+  for (const student of selectedSession.students) {
+    const res = await authFetch("http://localhost:5000/api/attendance/edit", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        attendance_id: student.attendance_id,
+        status: editAttendance[student.id] ? "present" : "absent",
+      }),
+    });
+
+    if (!res) return;
+
+    if (!res.ok) {
+      console.log("Failed to update attendance for student:", student.id);
+    }
+  }
+};
+  // --- END: PRESERVED BACKEND LOGIC ---
+
+  // Stats Logic (Unchanged)
+  const totalSessions = currentMonthSessions.length;
+  const totalGeoSessions = currentMonthSessions.filter((s) => s.geo).length;
+  const getStartOfWeek = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+  const startOfWeek = getStartOfWeek(new Date());
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 7);
+  const currentWeekSessions = currentMonthSessions.filter((s) => {
+    const sessionDate = new Date(s.date);
+    return sessionDate >= startOfWeek && sessionDate < endOfWeek;
+  }).length;
+  const subjectCountMap: Record<string, number> = {};
+  currentMonthSessions.forEach((s) => {
+    const subjectCode = s.code;
+    subjectCountMap[subjectCode] = (subjectCountMap[subjectCode] || 0) + 1;
+  });
+  const highestSessionSubject =
+    Object.keys(subjectCountMap).length > 0
+      ? Object.keys(subjectCountMap).reduce((a, b) =>
+          subjectCountMap[a] > subjectCountMap[b] ? a : b,
+        )
+      : "N/A";
+  const DetailTile = ({ label, value, highlight = "text-foreground" }) => (
+    <div className="bg-muted/30 p-3 rounded-xl border border-border/40 text-center">
+      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-tight mb-1">
+        {label}
+      </p>
+      <p className={`text-xs font-bold truncate ${highlight}`}>{value}</p>
+    </div>
+  );
+
+  const StatCard = ({ title, value, icon, variant }: any) => {
+    // Map variants to specific icon-box colors
+    const variantStyles: any = {
+      primary: "bg-blue-50 text-blue-600 border-blue-100",
+      accent: "bg-indigo-50 text-indigo-600 border-indigo-100",
+      success: "bg-emerald-50 text-emerald-600 border-emerald-100",
+      warning: "bg-amber-50 text-amber-600 border-amber-100",
+    };
+
+    return (
+      <Card className="shadow-sm hover:shadow-md transition-all duration-300 group relative border-border/50 overflow-hidden">
+        <CardContent className="p-5 flex flex-col justify-between h-full">
+          <div className="flex justify-between items-start">
+            <div className="mb-3">
+              <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/80">
+                {title}
+              </p>
+              <div>
+                <p className="text-2xl font-black tracking-tighter truncate text-foreground mt-2">
+                  {value}
+                </p>
+              </div>
+            </div>
+            <div
+              className={`p-2 rounded-lg border transition-transform group-hover:scale-110 duration-300 ${variantStyles[variant] || "bg-muted text-muted-foreground"}`}
+            >
+              {icon}
+            </div>
+          </div>
         </CardContent>
       </Card>
+    );
+  };
 
-      {/* Session Details Dialog */}
-      <Dialog open={!!selectedSession} onOpenChange={(open) => { if (!open) { setSelectedSession(null); setIsEditing(false); } }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <PlayCircle className="w-5 h-5 text-primary" />
-              Session Details — {selectedSession?.id}
-            </DialogTitle>
-            <DialogDescription>
-              {isEditing ? "Edit student attendance for this manual session." : "View attendance details for this session."}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedSession && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Subject</p>
-                  <p className="text-sm font-semibold mt-0.5">{selectedSession.subject}</p>
+  return (
+    <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
+      {/* Modern Bento Grid Stats */}
+      <div className="grid lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Logs"
+          value={String(totalSessions)}
+          icon={<PlayCircle className="w-4 h-4" />}
+          variant="primary"
+        />
+        <StatCard
+          title="Geo-Fenced"
+          value={String(totalGeoSessions)}
+          icon={<MapPin className="w-4 h-4" />}
+          variant="accent"
+        />
+        <StatCard
+          title="Recent"
+          value={String(currentWeekSessions)}
+          icon={<CalendarDays className="w-4 h-4" />}
+          variant="success"
+        />
+        <StatCard
+          title="Top Track"
+          value={highestSessionSubject}
+          icon={<BookOpen className="w-4 h-4" />}
+          variant="warning"
+        />
+      </div>
+
+      {/* Modern Table Card */}
+      <Card className="border-none shadow-md bg-card/60 ring-1 ring-border/50 overflow-hidden">
+        <CardHeader className="border-border/50 px-6 py-4 flex flex-row items-center justify-between bg-muted/20">
+          <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Session History
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/40">
+                <TableRow>
+                  <TableHead className="text-[10px] font-black uppercase px-6">
+                    Course Details
+                  </TableHead>
+                  <TableHead className="text-[10px] font-black uppercase px-6">
+                    Timestamp
+                  </TableHead>
+                  <TableHead className="text-[10px] font-black uppercase px-6">
+                    Class
+                  </TableHead>
+                  <TableHead className="text-[10px] font-black uppercase px-6 text-center">
+                    Attendance
+                  </TableHead>
+                  <TableHead className="text-[10px] font-black uppercase px-6 text-center">
+                    Modality
+                  </TableHead>
+                  <TableHead className="text-right pr-6 font-black uppercase text-[10px]">
+                    Action
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {currentMonthSessions.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-32 text-center text-muted-foreground"
+                    >
+                      No session history available for this month.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentMonthSessions.map((s) => (
+                    <TableRow
+                      key={s.id}
+                      className="group hover:bg-primary/5 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedSession(s);
+                        fetchSessionDetails(s.id);
+                      }}
+                    >
+                      <TableCell className="px-6 py-5">
+                        <div className="font-bold text-foreground">
+                          {s.subject}
+                        </div>
+                        <div className="text-[10px] font-mono text-muted-foreground uppercase">
+                          {s.code}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6">
+                        <div className="text-sm font-bold">
+                          {new Date(s.date).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "long",
+                          })}
+                        </div>
+
+                        <div className="text-xs text-muted-foreground lowercase">
+                          {(() => {
+                            const startTime = s.time.split(" - ")[0];
+                            return new Date(startTime).toLocaleTimeString(
+                              "en-IN",
+                              {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            );
+                          })()}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6 py-5">
+                        <div className="text-[11px] font-semibold text-muted-foreground">
+                          {s?.class_name || "NA"}
+                       </div>
+                      </TableCell>
+                      <TableCell className="px-6 text-center">
+                        <span className="font-black text-emerald-600">
+                          {s.present}
+                        </span>{" "}
+                        <span className="text-muted-foreground text-xs">
+                          / {s.total}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-6 text-center">
+                        <div
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${s.geo ? "bg-indigo-500/10 text-indigo-500" : "bg-orange-500/10 text-orange-500"}`}
+                        >
+                          {s.geo ? "GeoLocation" : "Manual"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full group-hover:bg-primary group-hover:text-white transition-all"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="md:hidden divide-y divide-border/40">
+            {currentMonthSessions.map((s) => (
+              <div
+                key={s.id}
+                className="p-4 active:bg-muted transition-colors flex items-center justify-between"
+                onClick={() => {
+                  setSelectedSession(s);
+                  fetchSessionDetails(s.id);
+                }}
+              >
+                <div className="space-y-1">
+                  <p className="font-bold text-sm leading-none">{s.subject}</p>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
+                    <span>{s?.class_name || "NA"}</span>
+                    <span>•</span>
+                    <span>{new Date(s.date).toLocaleDateString()}</span>
+                    <span>•</span>
+                    <span
+                      className={s.geo ? "text-indigo-500" : "text-orange-500"}
+                    >
+                      {s.geo ? "Geo-Fenced" : "Manual"}
+                    </span>
+                  </div>
                 </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Date</p>
-                  <p className="text-sm font-semibold mt-0.5">{selectedSession.date}</p>
-                </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Time</p>
-                  <p className="text-sm font-semibold mt-0.5">{selectedSession.time}</p>
-                </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Mode</p>
-                  <p className={`text-sm font-semibold mt-0.5 ${selectedSession.geo ? "text-accent" : "text-warning"}`}>
-                    {selectedSession.geo ? "Geo-Location" : "Manual"}
+                <div className="text-right">
+                  <p className="text-sm font-black text-emerald-600">
+                    {s.present}/{s.total}
+                  </p>
+                  <p className="text-[9px] uppercase font-bold text-muted-foreground">
+                    Present
                   </p>
                 </div>
               </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-              <div className="flex items-center gap-4 px-1">
-                <div className="flex items-center gap-1.5 text-sm">
-                  <UserCheck className="w-4 h-4 text-success" />
-                  <span className="font-semibold text-success">
-                    {isEditing ? Object.values(editAttendance).filter(Boolean).length : selectedSession.present}
-                  </span>
-                  <span className="text-muted-foreground">Present</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm">
-                  <UserX className="w-4 h-4 text-destructive" />
-                  <span className="font-semibold text-destructive">
+      <Dialog
+        open={!!selectedSession}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSelectedSession(null);
+            setIsEditing(false);
+          }
+        }}
+      >
+        <DialogContent className="w-[95vw] sm:max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-card max-h-[90vh] flex flex-col">
+          <div
+            className={`h-1.5 w-full shrink-0 ${selectedSession?.geo ? "bg-indigo-500" : "bg-orange-500"}`}
+          />
+
+          <div className="p-5 md:p-8 space-y-4 md:space-y-6 overflow-y-auto">
+            <DialogHeader className="text-left">
+              <div className="hidden md:flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  Session Report
+                </span>
+              </div>
+              <DialogTitle className="text-xl md:text-2xl font-black leading-tight">
+                {selectedSession?.subject} - {selectedSession?.code}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+              <DetailTile
+                label="Class"
+                value={selectedSession?.class_name || "N/A"}
+              />
+              <DetailTile
+                label="Date"
+                value={
+                  selectedSession
+                    ? new Date(selectedSession.date).toLocaleDateString(
+                        "en-GB",
+                        { day: "2-digit", month: "short" },
+                      )
+                    : "-"
+                }
+              />
+              <DetailTile
+                label="Time"
+                value={
+                  selectedSession
+                    ? new Date(
+                        selectedSession.time.split(" - ")[0],
+                      ).toLocaleTimeString("en-IN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "-"
+                }
+              />
+              <DetailTile
+                label="Mode"
+                value={selectedSession?.geo ? "Geo" : "Manual"}
+                highlight={
+                  selectedSession?.geo ? "text-indigo-500" : "text-orange-500"
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between px-1 py-3 border-y border-border/40">
+              <div className="flex gap-4">
+                <div className="flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-sm font-black text-emerald-600">
+                    <span className="md:inline hidden">Present</span>{" "}
                     {isEditing
-                      ? selectedSession.students.length - Object.values(editAttendance).filter(Boolean).length
-                      : selectedSession.total - selectedSession.present}
+                      ? Object.values(editAttendance).filter(Boolean).length
+                      : selectedSession?.present}
                   </span>
-                  <span className="text-muted-foreground">Absent</span>
                 </div>
-                <div className="ml-auto text-sm text-muted-foreground">
-                  Attendance Rate: <span className="font-semibold text-foreground">
-                    {isEditing
-                      ? Math.round((Object.values(editAttendance).filter(Boolean).length / selectedSession.students.length) * 100)
-                      : Math.round((selectedSession.present / selectedSession.total) * 100)}%
+                <div className="flex items-center gap-1.5">
+                  <UserX className="w-3.5 h-3.5 text-destructive" />
+                  <span className="text-sm font-black text-destructive">
+                    <span className="md:inline hidden">Absent</span>{" "}
+                    {(selectedSession?.students.length || 0) -
+                      (isEditing
+                        ? Object.values(editAttendance).filter(Boolean).length
+                        : selectedSession?.present || 0)}
                   </span>
                 </div>
               </div>
+              <div className="bg-muted/50 px-3 py-1 rounded-full">
+                <span className="text-xs font-black">
+                  <span className="md:inline hidden">Attendance Rate</span>{" "}
+                  {selectedSession
+                    ? Math.round(
+                        ((isEditing
+                          ? Object.values(editAttendance).filter(Boolean).length
+                          : selectedSession.present) /
+                          selectedSession.students.length) *
+                          100,
+                      )
+                    : 0}
+                  %
+                </span>
+              </div>
+            </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {isEditing && <TableHead className="w-12">Mark</TableHead>}
-                    <TableHead>Roll No</TableHead>
-                    <TableHead>Student ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Time Marked</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedSession.students.map((st) => (
-                    <TableRow key={st.id} className={
-                      isEditing
-                        ? (editAttendance[st.id] ? "bg-success/5" : "")
-                        : (st.status === "present" ? "bg-success/5" : "")
-                    }>
+            <div className="border border-border/50 rounded-2xl overflow-hidden bg-background/50">
+              <div className="max-h-[30vh] md:max-h-[35vh] overflow-y-auto">
+                <Table>
+                  <TableHeader className="bg-muted/50 sticky top-0 z-10">
+                    <TableRow className="hover:bg-transparent">
                       {isEditing && (
-                        <TableCell>
-                          <Checkbox
-                            checked={!!editAttendance[st.id]}
-                            onCheckedChange={(c) => setEditAttendance(prev => ({ ...prev, [st.id]: !!c }))}
+                        <TableHead className="w-10 pl-3"></TableHead>
+                      )}
+                      <TableHead className="text-[9px] font-black uppercase pl-4">
+                        Regd No / Name
+                      </TableHead>
+                      <TableHead className="hidden md:table-cell text-[10px] font-black uppercase text-center">
+                        Time Marked
+                      </TableHead>
+                      <TableHead className="text-[9px] font-black uppercase text-right pr-8">
+                        Status
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedSession?.students?.map((st) => (
+                      <TableRow key={st.id} className="border-border/40">
+                        {isEditing && (
+                          <TableCell className="pl-3">
+                            <Checkbox
+                              checked={!!editAttendance[st.id]}
+                              onCheckedChange={(val) =>
+                                setEditAttendance((p) => ({
+                                  ...p,
+                                  [st.id]: !!val,
+                                }))
+                              }
+                            />
+                          </TableCell>
+                        )}
+                        <TableCell className="pl-4 py-2">
+                          <p className="text-[9px] font-mono text-muted-foreground">
+                            {st.id}
+                          </p>
+                          <p className="text-sm font-bold truncate max-w-[150px]">
+                            {st.name}
+                          </p>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-center text-xs font-medium text-muted-foreground">
+                          {st.time !== "-"
+                            ? new Date(st.time).toLocaleTimeString("en-IN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "—"}
+                        </TableCell>
+                        <TableCell className="text-right pr-4">
+                          <StatusBadge
+                            status={
+                              isEditing
+                                ? editAttendance[st.id]
+                                  ? "present"
+                                  : "absent"
+                                : st.status
+                            }
                           />
                         </TableCell>
-                      )}
-                      <TableCell className="font-mono text-xs">{st.roll}</TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{st.id}</TableCell>
-                      <TableCell className="font-medium">{st.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{st.time}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={isEditing ? (editAttendance[st.id] ? "present" : "absent") : st.status} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
-          )}
-          <DialogFooter className="gap-2">
-            {selectedSession && !selectedSession.geo && !isEditing && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  const att: Record<string, boolean> = {};
-                  selectedSession.students.forEach(st => { att[st.id] = st.status === "present"; });
-                  setEditAttendance(att);
-                  setIsEditing(true);
-                }}
-              >
-                Edit Attendance
-              </Button>
-            )}
-            {isEditing && (
-              <Button
-                onClick={() => {
-                  if (!selectedSession) return;
-                  const now = new Date();
-                  const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-                  const updatedStudents = selectedSession.students.map(st => ({
-                    ...st,
-                    status: editAttendance[st.id] ? "present" as const : "absent" as const,
-                    time: editAttendance[st.id] ? (st.status === "present" ? st.time : timeStr) : "-",
-                  }));
-                  const presentCount = updatedStudents.filter(s => s.status === "present").length;
-                  const updatedSession: SessionRecord = {
-                    ...selectedSession,
-                    students: updatedStudents,
-                    present: presentCount,
-                  };
-                  onUpdateSession(updatedSession);
-                  setSelectedSession(updatedSession);
-                  setIsEditing(false);
-                  toast({ title: "Attendance Updated", description: `Updated attendance: ${presentCount}/${updatedStudents.length} present.` });
-                }}
-              >
-                <CheckCircle2 className="w-4 h-4 mr-1" /> Update Attendance
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => { setSelectedSession(null); setIsEditing(false); }}>
-              {isEditing ? "Cancel" : "Close"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Create Session Dialog */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Session</DialogTitle>
-            <DialogDescription>Set up a new attendance session for your class.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Subject</Label>
-              <Select defaultValue="cs201">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cs201">CS201 - Data Structures</SelectItem>
-                  <SelectItem value="cs301">CS301 - Database Systems</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Class</Label>
-              <Select defaultValue="cse-a">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cse-a">CSE - Section A</SelectItem>
-                  <SelectItem value="cse-b">CSE - Section B</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Input type="date" defaultValue="2026-03-08" />
-              </div>
-              <div className="space-y-2">
-                <Label>Time</Label>
-                <Input type="time" defaultValue="09:00" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <Label>Enable Geo-Attendance</Label>
-              <Switch defaultChecked />
-            </div>
+            <DialogFooter className="flex flex-col gap-2 pt-2 pb-1">
+              {!isEditing ? (
+                <Button
+                  className="w-full h-11 rounded-xl font-black uppercase tracking-widest text-[10px] bg-primary"
+                  onClick={() => {
+                    const att = {};
+                    selectedSession.students.forEach(
+                      (st) => (att[st.id] = st.status === "present"),
+                    );
+                    setEditAttendance(att);
+                    setIsEditing(true);
+                  }}
+                >
+                  Modify Attendance
+                </Button>
+              ) : (
+                <Button
+                  className="w-full h-11 rounded-xl font-black uppercase tracking-widest text-[10px] bg-emerald-600"
+                  onClick={async () => {
+                    if (!selectedSession) return;
+
+                    await updateAttendance();
+
+                    const updatedStudents = selectedSession.students.map(
+                      (st) => {
+                        const status: "present" | "absent" = editAttendance[
+                          st.id
+                        ]
+                          ? "present"
+                          : "absent";
+
+                        return {
+                          ...st,
+                          status,
+                        };
+                      },
+                    );
+
+                    const presentCount = updatedStudents.filter(
+                      (s) => s.status === "present",
+                    ).length;
+
+                    const updatedSession: SessionRecord = {
+                      ...selectedSession,
+                      students: updatedStudents,
+                      present: presentCount,
+                    };
+
+                    onUpdateSession(updatedSession);
+                    setSelectedSession(updatedSession);
+                    setIsEditing(false);
+
+                    toast({
+                      title: "Attendance Updated",
+                      description: `Updated attendance: ${presentCount}/${updatedStudents.length} present.`,
+                    });
+                  }}
+                >
+                  <CheckCircle2 className="mr-2 h-3.5 w-3.5" /> Save Changes
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                className="w-full h-10 rounded-xl font-bold text-muted-foreground text-xs bg-rose-500 text-white hover:bg-rose-400"
+                onClick={() => {
+                  setSelectedSession(null);
+                  setIsEditing(false);
+                }}
+              >
+                {isEditing ? "Cancel" : "Close"}
+              </Button>
+            </DialogFooter>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button onClick={() => { setShowCreate(false); toast({ title: "Session Created", description: "New attendance session has been created successfully." }); }}>Create Session</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
@@ -619,74 +1331,342 @@ function SessionsPage({ sessions, onUpdateSession }: { sessions: SessionRecord[]
 }
 
 function ReportsPage() {
-  const [selectedSubject, setSelectedSubject] = useState("all");
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [report, setReport] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [assignments, setAssignments] = useState([]);
 
-  return (
-    <div className="space-y-6 animate-slide-in">
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="text-base font-sans font-semibold">Monthly Attendance Report</CardTitle>
-            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="h-8 w-48 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Subjects</SelectItem>
-                <SelectItem value="cs201">CS201 - Data Structures</SelectItem>
-                <SelectItem value="cs301">CS301 - Database Systems</SelectItem>
-              </SelectContent>
-            </Select>
+  // --- START: PRESERVED BACKEND LOGIC ---
+  useEffect(() => {
+    const fetchReport = async () => {
+      if (!selectedClass || !selectedSubject) return;
+      try {
+        setLoading(true);
+        const res = await authFetch(
+          `http://localhost:5000/api/attendance/teacher/eligibility?class_id=${selectedClass}&subject_id=${selectedSubject}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+        if (!res) return;
+        const data = await res.json();
+        setReport(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.log("Error fetching eligibility report:", err);
+        setReport([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, [selectedClass, selectedSubject]);
+
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const res = await authFetch(
+          "http://localhost:5000/api/teachers/assignments",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+        if (!res) return;
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : [];
+        setAssignments(rows);
+        if (rows.length > 0) {
+          const firstClass = String(rows[0].class_id);
+          const firstSubject = String(rows[0].subject_id);
+          setSelectedClass(firstClass);
+          setSelectedSubject(firstSubject);
+        }
+      } catch (err) {
+        console.log("Error fetching assignments:", err);
+      }
+    };
+    fetchAssignments();
+  }, []);
+  // --- END: PRESERVED BACKEND LOGIC ---
+
+  const totalStudents = report.length;
+  const eligibleStudents = report.filter(
+    (r: any) => Number(r.overall_percentage) >= 75,
+  ).length;
+  const notEligibleStudents = totalStudents - eligibleStudents;
+  const avgAttendance =
+    report.length > 0
+      ? (
+          report.reduce(
+            (acc, curr: any) => acc + Number(curr.overall_percentage),
+            0,
+          ) / report.length
+        ).toFixed(1)
+      : "0";
+
+  const StatCard = ({ title, value, subtext, icon: Icon, variant }: any) => {
+    const iconVariants: any = {
+      success: "bg-emerald-50 text-emerald-600 border-emerald-100",
+      destructive: "bg-rose-50 text-rose-600 border-rose-100",
+      accent: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    };
+
+    return (
+      <Card className="border border-border/50 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
+        <CardContent className="p-5">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">
+                {title}
+              </p>
+              <h3 className="text-2xl font-black tracking-tight text-foreground">
+                {value}
+              </h3>
+              <p className="text-[10px] font-bold text-muted-foreground/60 italic">
+                {subtext}
+              </p>
+            </div>
+            <div
+              className={`p-2.5 rounded-xl border transition-transform group-hover:scale-110 duration-300 ${iconVariants[variant]}`}
+            >
+              <Icon className="w-5 h-5" />
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead>ID</TableHead>
-                <TableHead>Jan</TableHead>
-                <TableHead>Feb</TableHead>
-                <TableHead>Mar</TableHead>
-                <TableHead>Overall</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {reportData.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.student}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{r.id}</TableCell>
-                  <TableCell>{r.jan}%</TableCell>
-                  <TableCell>{r.feb}%</TableCell>
-                  <TableCell>{r.mar}%</TableCell>
-                  <TableCell className={`font-semibold ${r.overall >= 75 ? "text-success" : "text-destructive"}`}>{r.overall}%</TableCell>
-                  <TableCell><StatusBadge status={r.overall >= 75 ? "eligible" : "not-eligible"} /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         </CardContent>
       </Card>
+    );
+  };
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="shadow-card">
-          <CardContent className="pt-6 text-center">
-            <p className="text-2xl font-bold text-success">75%</p>
-            <p className="text-sm text-muted-foreground mt-1">Students Above Threshold</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="pt-6 text-center">
-            <p className="text-2xl font-bold text-accent">82%</p>
-            <p className="text-sm text-muted-foreground mt-1">Average Class Attendance</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="pt-6 text-center">
-            <p className="text-2xl font-bold text-destructive">25%</p>
-            <p className="text-sm text-muted-foreground mt-1">Students Below 75%</p>
-          </CardContent>
-        </Card>
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto md:p-0 animate-in fade-in duration-700">
+      {/* STATS BENTO GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Students"
+          value={String(totalStudents)}
+          subtext="Active Students"
+          icon={Users}
+          variant="accent"
+        />
+        <StatCard
+          title="Eligible"
+          value={String(eligibleStudents)}
+          subtext="Above 75% Threshold"
+          icon={UserCheck}
+          variant="success"
+        />
+        <StatCard
+          title="Not Eligible"
+          value={String(notEligibleStudents)}
+          subtext="Below Requirements"
+          icon={UserX}
+          variant="destructive"
+        />
+        <StatCard
+          title="Avg. Presence"
+          value={`${avgAttendance}%`}
+          subtext="Class performance"
+          icon={Filter}
+          variant="accent"
+        />
       </div>
+
+      {/* FILTER AND DATA SECTION */}
+      <Card className="border-none shadow-md bg-card/60 ring-1 ring-border/50 overflow-hidden rounded-xl">
+        <CardHeader className="border-b border-border/50 bg-muted/10 px-6 py-5">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-lg font-black uppercase tracking-tight">
+                Student Eligibility
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">
+                Real-time Eligibility Tracking
+              </CardDescription>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 bg-background border rounded-2xl px-3 py-1 shadow-sm">
+                <span className="text-[10px] font-black uppercase text-muted-foreground">
+                  Class
+                </span>
+                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <SelectTrigger className="h-8 w-[140px] border-none focus:ring-0 bg-transparent font-bold">
+                    <SelectValue placeholder="Select Class" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {Array.from(
+                      new Map(assignments.map((a) => [a.class_id, a])).values(),
+                    ).map((a) => (
+                      <SelectItem
+                        key={a.class_id}
+                        value={String(a.class_id)}
+                        className="font-medium text-xs"
+                      >
+                        {a.class_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2 bg-background border rounded-2xl px-3 py-1 shadow-sm">
+                <span className="text-[10px] font-black uppercase text-muted-foreground">
+                  Subject
+                </span>
+                <Select
+                  value={selectedSubject}
+                  onValueChange={setSelectedSubject}
+                >
+                  <SelectTrigger className="h-8 w-[180px] border-none focus:ring-0 bg-transparent font-bold">
+                    <SelectValue placeholder="Select Subject" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {Array.from(
+                      new Map(
+                        assignments.map((a) => [a.subject_id, a]),
+                      ).values(),
+                    ).map((a) => (
+                      <SelectItem
+                        key={a.subject_id}
+                        value={String(a.subject_id)}
+                        className="font-medium text-xs"
+                      >
+                        {a.subject_code} - {a.subject_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 h-12">
+                    Student Profile
+                  </TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 text-center">
+                    Session Stats
+                  </TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest px-6">
+                    Attendance Metric
+                  </TableHead>
+                  <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-widest">
+                    Decision
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="text-center py-20 animate-pulse font-bold text-muted-foreground"
+                    >
+                      Synchronizing Records...
+                    </TableCell>
+                  </TableRow>
+                ) : report.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="text-center py-20 font-bold text-muted-foreground"
+                    >
+                      No data matches current filter criteria.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  report.map((r: any) => {
+                    const isEligible = Number(r.overall_percentage) >= 75;
+                    return (
+                      <TableRow
+                        key={r.student_id}
+                        className="group hover:bg-primary/[0.02] transition-colors border-border/40"
+                      >
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <p className="font-bold text-sm leading-none mb-1">
+                                {r.student_name}
+                              </p>
+                              <p className="text-[10px] font-mono text-muted-foreground uppercase">
+                                {r.student_id}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="px-6 text-center">
+                          <div className="inline-flex items-center bg-muted/50 rounded-lg px-3 py-1 gap-4">
+                            <div className="text-center">
+                              <p className="text-[9px] font-black uppercase text-muted-foreground leading-none">
+                                Pres
+                              </p>
+                              <p className="text-xs font-bold">
+                                {Number(r.total_present)}
+                              </p>
+                            </div>
+                            <div className="w-px h-6 bg-border" />
+                            <div className="text-center">
+                              <p className="text-[9px] font-black uppercase text-muted-foreground leading-none">
+                                Total
+                              </p>
+                              <p className="text-xs font-bold">
+                                {Number(r.total_conducted)}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="px-6 min-w-[200px]">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-[10px] font-black uppercase">
+                              <span
+                                className={
+                                  isEligible
+                                    ? "text-emerald-600"
+                                    : "text-rose-600"
+                                }
+                              >
+                                {r.overall_percentage}%
+                              </span>
+                              <span className="text-muted-foreground italic">
+                                Target: 75%
+                              </span>
+                            </div>
+                            <Progress
+                              value={Number(r.overall_percentage)}
+                              className={`h-1.5 rounded-full bg-muted ${isEligible ? "[&>div]:bg-emerald-500" : "[&>div]:bg-rose-500"}`}
+                            />
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="md:text-right pr-6 text-left">
+                          <StatusBadge
+                            status={
+                              Number(r.overall_percentage) >= 75
+                                ? "eligible"
+                                : "not-eligible"
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -694,23 +1674,67 @@ function ReportsPage() {
 const TeacherDashboard = () => {
   const location = useLocation();
   const path = location.pathname;
-  const [sessions, setSessions] = useState<SessionRecord[]>(initialSessions);
+  const [sessions, setSessions] = useState<SessionRecord[]>([]);
+  const { user } = useAuth();
 
   const handleSubmitSession = (session: SessionRecord) => {
-    setSessions(prev => [session, ...prev]);
+    setSessions((prev) => [session, ...prev]);
   };
 
   const handleUpdateSession = (updated: SessionRecord) => {
-    setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
+    setSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
   };
 
+  const fetchSessions = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await authFetch("http://localhost:5000/api/attendance/history", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res) return;
+    const data = await res.json();
+
+    const formatted = data.map((s) => ({
+      id: s.id,
+      subject: s.subject,
+      class_name: s.class_name,
+      code: s.code,
+      date: s.date,
+      time: `${s.start_time} - ${s.end_time || ""}`,
+      present: Number(s.present),
+      total: Number(s.total),
+      geo: s.geo,
+      students: [],
+    }));
+
+    setSessions(formatted);
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
   let content;
-  if (path === "/teacher/sessions") content = <SessionsPage sessions={sessions} onUpdateSession={handleUpdateSession} />;
+  if (path === "/teacher/console")
+    content = (
+      <TeacherDashboardPage
+        onSubmitSession={handleSubmitSession}
+        fetchSessions={fetchSessions}
+      />
+    );
   else if (path === "/teacher/reports") content = <ReportsPage />;
-  else content = <TeacherDashboardPage onSubmitSession={handleSubmitSession} />;
+  else
+    content = (
+      <SessionsPage sessions={sessions} onUpdateSession={handleUpdateSession} />
+    );
 
   return (
-    <DashboardLayout title="Teacher Dashboard" subtitle="Dr. Sarah Williams" navItems={navItems} role="Teacher">
+    <DashboardLayout
+      title="Teacher Dashboard"
+      subtitle={`${user?.name || "Teacher"}`}
+      navItems={navItems}
+      role="Teacher"
+    >
       {content}
     </DashboardLayout>
   );

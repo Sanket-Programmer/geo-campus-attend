@@ -9,6 +9,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import ExamControllerDashboard from "./pages/ExamControllerDashboard";
 import AcademicDashboard from "./pages/AcademicDashboard";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "../src/components/ProtectedRoutes.jsx";
 
 const queryClient = new QueryClient();
 
@@ -20,14 +21,43 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/student" element={<StudentDashboard />} />
-          <Route path="/student/*" element={<StudentDashboard />} />
-          <Route path="/teacher" element={<TeacherDashboard />} />
-          <Route path="/teacher/*" element={<TeacherDashboard />} />
-          <Route path="/exam-controller" element={<ExamControllerDashboard />} />
-          <Route path="/exam-controller/*" element={<ExamControllerDashboard />} />
-          <Route path="/academic" element={<AcademicDashboard />} />
-          <Route path="/academic/*" element={<AcademicDashboard />} />
+
+          <Route
+            path="/student/*"
+            element={
+              <ProtectedRoute allowedRole="student">
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher/*"
+            element={
+              <ProtectedRoute allowedRole="teacher">
+                <TeacherDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/exam-controller/*"
+            element={
+              <ProtectedRoute allowedRole="exam_controller">
+                <ExamControllerDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/academic/*"
+            element={
+              <ProtectedRoute allowedRole="academic_section">
+                <AcademicDashboard />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

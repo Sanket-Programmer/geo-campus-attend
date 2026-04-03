@@ -1,250 +1,352 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
-import { Shield, Users, AlertTriangle, CheckCircle2, FileText, BarChart3, Download } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Shield,
+  Users,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  Download,
+  Search,
+  Loader2,
+  Inbox,
+  GraduationCap,
+  FileSpreadsheet,
+  Building2,
+  CalendarDays,
+  Layers,
+  UserRoundCheck,
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { authFetch } from "../../utils/authFetch";
 
 const navItems = [
-  { title: "Dashboard", url: "/exam-controller", icon: BarChart3 },
-  { title: "Eligibility", url: "/exam-controller/eligibility", icon: Shield },
+  { title: "Eligibility", url: "/exam-controller", icon: UserRoundCheck },
   { title: "Reports", url: "/exam-controller/reports", icon: FileText },
 ];
 
-// Subject-to-department mapping
-const subjectsByDept: Record<string, { code: string; name: string }[]> = {
-  CSE: [
-    { code: "CS101", name: "Data Structures" },
-    { code: "CS102", name: "Operating Systems" },
-    { code: "CS103", name: "Database Management" },
-  ],
-  ECE: [
-    { code: "EC101", name: "Digital Electronics" },
-    { code: "EC102", name: "Signal Processing" },
-  ],
-  ME: [
-    { code: "ME101", name: "Thermodynamics" },
-    { code: "ME102", name: "Fluid Mechanics" },
-  ],
-};
-
-// Students with subjects they are registered in and per-subject attendance
-const students = [
-  { id: "STU001", name: "Alex Johnson", dept: "CSE", subjects: [
-    { code: "CS101", attendance: 90 }, { code: "CS102", attendance: 85 }, { code: "CS103", attendance: 92 },
-  ]},
-  { id: "STU002", name: "Maria Garcia", dept: "CSE", subjects: [
-    { code: "CS101", attendance: 87 }, { code: "CS102", attendance: 80 },
-  ]},
-  { id: "STU003", name: "James Wilson", dept: "CSE", subjects: [
-    { code: "CS101", attendance: 70 }, { code: "CS103", attendance: 65 },
-  ]},
-  { id: "STU004", name: "Emily Davis", dept: "ECE", subjects: [
-    { code: "EC101", attendance: 61 }, { code: "EC102", attendance: 72 },
-  ]},
-  { id: "STU005", name: "Robert Brown", dept: "CSE", subjects: [
-    { code: "CS101", attendance: 82 }, { code: "CS102", attendance: 78 }, { code: "CS103", attendance: 88 },
-  ]},
-  { id: "STU006", name: "Sarah Miller", dept: "ECE", subjects: [
-    { code: "EC101", attendance: 78 }, { code: "EC102", attendance: 84 },
-  ]},
-  { id: "STU007", name: "David Lee", dept: "ME", subjects: [
-    { code: "ME101", attendance: 55 }, { code: "ME102", attendance: 60 },
-  ]},
-  { id: "STU008", name: "Lisa Wang", dept: "CSE", subjects: [
-    { code: "CS101", attendance: 95 }, { code: "CS102", attendance: 91 }, { code: "CS103", attendance: 97 },
-  ]},
-];
-
-// Helper to compute overall attendance for a student
-function getOverallAttendance(student: typeof students[0]) {
-  const total = student.subjects.reduce((sum, s) => sum + s.attendance, 0);
-  return Math.round(total / student.subjects.length);
-}
-
-function getStatus(attendance: number): "eligible" | "not-eligible" {
-  return attendance >= 75 ? "eligible" : "not-eligible";
-}
-
-function ExamDashboardPage() {
-  const eligible = students.filter((s) => getStatus(getOverallAttendance(s)) === "eligible").length;
-  const notEligible = students.length - eligible;
-
-  return (
-    <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Students" value={students.length} icon={<Users className="w-5 h-5" />} />
-        <StatCard title="Eligible" value={eligible} icon={<CheckCircle2 className="w-5 h-5" />} variant="success" />
-        <StatCard title="Not Eligible" value={notEligible} icon={<AlertTriangle className="w-5 h-5" />} variant="destructive" />
-        <StatCard title="Threshold" value="75%" subtitle="Minimum attendance" icon={<Shield className="w-5 h-5" />} variant="accent" />
-      </div>
-
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-sans font-semibold">Student Eligibility Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Attendance %</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.map((s) => {
-                const att = getOverallAttendance(s);
-                const status = getStatus(att);
-                return (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{s.dept}</TableCell>
-                    <TableCell className={`font-semibold ${att >= 75 ? "text-success" : "text-destructive"}`}>{att}%</TableCell>
-                    <TableCell><StatusBadge status={status} /></TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
 function EligibilityPage() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [dept, setDept] = useState("CSE");
-  const [subject, setSubject] = useState("CS101");
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState([]);
+  const [dept, setDept] = useState("");
+  const [subject, setSubject] = useState("");
 
-  // When department changes, reset subject filter
+  const availableSubjects =
+    departments.find((d: any) => String(d.department_id) === String(dept))
+      ?.subjects || [];
+
   const handleDeptChange = (value: string) => {
     setDept(value);
-    setSubject("all");
+    const deptObj = departments.find(
+      (d: any) => String(d.department_id) === String(value),
+    );
+
+    if (deptObj && deptObj.subjects.length > 0) {
+      setSubject(String(deptObj.subjects[0].subject_id));
+    } else {
+      setSubject("");
+    }
   };
 
-  // Get available subjects based on selected department
-  const availableSubjects = dept === "all"
-    ? Object.values(subjectsByDept).flat()
-    : subjectsByDept[dept] || [];
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await authFetch(
+          "http://localhost:5000/api/departments/with-subjects",
+                  {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+        );
+              if (!res) return;
+        const data = await res.json();
+        setDepartments(Array.isArray(data) ? data : []);
 
-  // Build filtered student list with subject-aware attendance
-  const filtered = students
-    .filter((s) => {
-      const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase());
-      const matchDept = dept === "all" || s.dept === dept;
-      // If a subject is selected, only show students registered in that subject
-      const matchSubject = subject === "all" || s.subjects.some((sub) => sub.code === subject);
-      return matchSearch && matchDept && matchSubject;
-    })
-    .map((s) => {
-      // Calculate attendance based on subject filter
-      let attendance: number;
-      if (subject !== "all") {
-        const sub = s.subjects.find((sub) => sub.code === subject);
-        attendance = sub ? sub.attendance : 0;
-      } else {
-        attendance = getOverallAttendance(s);
+        if (data.length > 0) {
+          setDept(String(data[0].department_id));
+          if (data[0].subjects.length > 0) {
+            setSubject(String(data[0].subjects[0].subject_id));
+          }
+        }
+      } catch (err) {
+        console.log("Error fetching departments:", err);
+        setDepartments([]);
       }
-      const status = getStatus(attendance);
-      const matchFilter = filter === "all" || status === filter;
-      return matchFilter ? { ...s, displayAttendance: attendance, displayStatus: status } : null;
-    })
-    .filter(Boolean) as (typeof students[0] & { displayAttendance: number; displayStatus: "eligible" | "not-eligible" })[];
+    };
 
-  const eligible = filtered.filter((s) => s.displayStatus === "eligible").length;
+    fetchDepartments();
+  }, []);
 
-  // Get subject name for display
-  const selectedSubjectName = subject !== "all"
-    ? availableSubjects.find((s) => s.code === subject)?.name || subject
-    : null;
+  useEffect(() => {
+    if (!dept || !subject) return;
+
+    const fetchEligibility = async () => {
+      try {
+        setLoading(true);
+        setStudents([]);
+
+        const res = await authFetch(
+          `http://localhost:5000/api/exam/eligibility?department_id=${dept}&subject_id=${subject}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+      if (!res) return;
+        const data = await res.json();
+        setStudents(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.log("Error fetching eligibility:", err);
+        setStudents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEligibility();
+  }, [dept, subject]);
+  
+  const filtered = students.filter((s: any) => {
+    const matchSearch =
+      s.student_name.toLowerCase().includes(search.toLowerCase()) ||
+      String(s.student_id).toLowerCase().includes(search.toLowerCase());
+    return matchSearch;
+  });
+
+  const eligible = filtered.filter(
+    (s: any) => s.eligibility === "eligible",
+  ).length;
 
   return (
-    <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard title="Filtered Students" value={filtered.length} icon={<Users className="w-5 h-5" />} />
-        <StatCard title="Eligible" value={eligible} icon={<CheckCircle2 className="w-5 h-5" />} variant="success" />
-        <StatCard title="Not Eligible" value={filtered.length - eligible} icon={<AlertTriangle className="w-5 h-5" />} variant="destructive" />
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-8">
+      {/* Modern Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+        {/* Total Students Card */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+          <div className="p-3 bg-blue-100/50 text-blue-600 rounded-xl">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">
+              TOTAL STUDENTS FILTERED
+            </p>
+            <h3 className="text-3xl font-bold text-slate-900 mt-1">
+              {filtered.length}
+            </h3>
+          </div>
+        </div>
+
+        {/* Eligible Card */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+          <div className="p-3 bg-emerald-100/50 text-emerald-600 rounded-xl">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">ELIGIBLE</p>
+            <h3 className="text-3xl font-bold text-emerald-600 mt-1">
+              {eligible}
+            </h3>
+          </div>
+        </div>
+
+        {/* Not Eligible Card */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+          <div className="p-3 bg-rose-100/50 text-rose-600 rounded-xl">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">NOT ELIGIBLE</p>
+            <h3 className="text-3xl font-bold text-rose-600 mt-1">
+              {filtered.length - eligible}
+            </h3>
+          </div>
+        </div>
       </div>
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="text-base font-sans font-semibold">
-              Eligibility Details
-              {selectedSubjectName && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">— {selectedSubjectName}</span>
-              )}
-            </CardTitle>
-            <div className="flex gap-2 flex-wrap">
-              <Input placeholder="Search student..." className="h-8 w-48 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
-              <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="h-8 w-36 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="eligible">Eligible</SelectItem>
-                  <SelectItem value="not-eligible">Not Eligible</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Main Content Area */}
+      <Card className="border-slate-200 shadow-md rounded-2xl overflow-hidden bg-white">
+        {/* Command Bar / Filters */}
+        <div className="p-5 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="relative w-full lg:max-w-xs group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Search by name or regd no..."
+                className="pl-10 h-10 bg-white border-slate-200 focus:ring-primary/20 rounded-xl transition-all"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               <Select value={dept} onValueChange={handleDeptChange}>
-                <SelectTrigger className="h-8 w-28 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Dept</SelectItem>
-                  <SelectItem value="CSE">CSE</SelectItem>
-                  <SelectItem value="ECE">ECE</SelectItem>
-                  <SelectItem value="ME">ME</SelectItem>
+                <SelectTrigger className="h-10 sm:w-[200px] bg-white border-slate-200 rounded-xl font-medium text-slate-700">
+                  <SelectValue placeholder="Select Dept" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {departments.map((d: any) => (
+                    <SelectItem
+                      key={d.department_id}
+                      value={String(d.department_id)}
+                    >
+                      {d.department_name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+
               <Select value={subject} onValueChange={setSubject}>
-                <SelectTrigger className="h-8 w-44 text-sm"><SelectValue placeholder="All Subjects" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Subjects</SelectItem>
-                  {availableSubjects.map((sub) => (
-                    <SelectItem key={sub.code} value={sub.code}>{sub.code} - {sub.name}</SelectItem>
+                <SelectTrigger className="h-10 sm:w-[240px] bg-white border-slate-200 rounded-xl font-medium text-slate-700">
+                  <SelectValue placeholder="Select Subject" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {availableSubjects.map((sub: any) => (
+                    <SelectItem
+                      key={sub.subject_id}
+                      value={String(sub.subject_id)}
+                    >
+                      <span className="font-mono text-xs mr-2">
+                        {sub.subject_code}
+                      </span>
+                      {sub.subject_name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+
+        {/* Modern Table */}
+        <div className="overflow-x-auto">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Subject Attendance %</TableHead>
-                <TableHead>Status</TableHead>
+            <TableHeader className="bg-slate-50 hover:bg-slate-50">
+              <TableRow className="border-slate-100">
+                <TableHead className="font-semibold text-slate-600 h-12">
+                  Regd No.
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600">
+                  Name
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600">
+                  Department
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600">
+                  Attendance
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600 text-right pr-8">
+                  Status
+                </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {filtered.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.dept}</TableCell>
-                  <TableCell className={`font-semibold ${s.displayAttendance >= 75 ? "text-success" : "text-destructive"}`}>{s.displayAttendance}%</TableCell>
-                  <TableCell><StatusBadge status={s.displayStatus} /></TableCell>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center text-slate-400 gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary/60" />
+                      <p className="text-sm font-medium animate-pulse">
+                        Analyzing eligibility data...
+                      </p>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No students match the filters</TableCell></TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center text-slate-500 gap-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                        <Inbox className="w-6 h-6 text-slate-400" />
+                      </div>
+                      <p className="text-base font-semibold text-slate-700">
+                        No records found
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        Try adjusting your filters or search query.
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((s: any) => (
+                  <TableRow
+                    key={s.student_id}
+                    className="group border-slate-100 hover:bg-slate-50/80 transition-colors"
+                  >
+                    <TableCell className="font-mono text-xs text-slate-500 font-medium py-4">
+                      {s.student_id}
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-900">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center text-primary shrink-0 hidden sm:flex">
+                          <GraduationCap className="w-4 h-4" />
+                        </div>
+                        {s.student_name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-500 text-sm">
+                      {s.department_name}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`font-bold text-sm ${
+                            Number(s.percentage) >= 75
+                              ? "text-emerald-600"
+                              : "text-rose-600"
+                          }`}
+                        >
+                          {s.percentage}%
+                        </span>
+                        {/* Optional: Add a visual progress bar indicating attendance */}
+                        <div className="w-16 h-1.5 rounded-full bg-slate-100 hidden sm:block overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${Number(s.percentage) >= 75 ? "bg-emerald-500" : "bg-rose-500"}`}
+                            style={{
+                              width: `${Math.min(Number(s.percentage), 100)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <StatusBadge status={s.eligibility} />
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
@@ -252,54 +354,363 @@ function EligibilityPage() {
 
 function ReportsPage() {
   const { toast } = useToast();
+  const [reportDept, setReportDept] = useState("1");
+  const [semester, setSemester] = useState("Even (Jan-Jun)");
+  const [semesterNumber, setSemesterNumber] = useState("1st");
+  const [filteredData, setFilteredData] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const deptReports = [
-    { dept: "Computer Science", total: 320, eligible: 268, notEligible: 52, avg: 82 },
-    { dept: "Electronics", total: 240, eligible: 188, notEligible: 52, avg: 78 },
-    { dept: "Mechanical", total: 280, eligible: 210, notEligible: 70, avg: 75 },
-    { dept: "Civil", total: 200, eligible: 164, notEligible: 36, avg: 80 },
-  ];
+  const monthMap = {
+    Jan: "01",
+    Feb: "02",
+    Mar: "03",
+    Apr: "04",
+    May: "05",
+    Jun: "06",
+    Jul: "07",
+    Aug: "08",
+    Sep: "09",
+    Oct: "10",
+    Nov: "11",
+    Dec: "12",
+  };
+
+  const handleExportMonth = async (month) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        `http://localhost:5000/api/reports/export?department_id=${reportDept}&semester=${semesterNumber}&month=${month}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+    if (!res) return;
+      if (!res.ok) {
+        toast({
+          title: "Export Failed",
+          description: "Could not generate report",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Monthly_Report_${month}.xlsx`;
+      a.click();
+
+      toast({
+        title: "Report Exported",
+        description: `Excel report downloaded successfully`,
+      });
+    } catch (err) {
+      console.log("Export error:", err);
+    }
+  };
+
+  useEffect(() => {
+    const fetchMonthlyReport = async () => {
+      try {
+        setLoading(true);
+
+        const res = await authFetch(
+          `http://localhost:5000/api/reports/monthly-summary?department_id=${reportDept}&semester=${semesterNumber}&period=${semester}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+    if (!res) return;
+        const data = await res.json();
+        setFilteredData(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.log("Error fetching monthly report:", err);
+        setFilteredData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMonthlyReport();
+  }, [reportDept, semesterNumber, semester]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await authFetch(
+          "http://localhost:5000/api/departments/details",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+    if (!res) return;
+        const data = await res.json();
+
+        setDepartments(Array.isArray(data) ? data : []);
+
+        if (Array.isArray(data) && data.length > 0) {
+          setReportDept(String(data[0].department_id));
+        }
+      } catch (err) {
+        console.log("Error fetching departments:", err);
+        setDepartments([]);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentYear = currentDate.getFullYear();
+
+  const visibleData = filteredData.filter((d: any) => {
+    const monthNumber = Number(monthMap[d.month]);
+
+    return monthNumber < currentMonth;
+  });
+
+  const totalStudents = visibleData.length > 0 ? visibleData[0].total : 0;
+  const totalReports = visibleData.length;
+  const totalEligible = visibleData.reduce((sum, d) => sum + d.eligible, 0);
+  const totalNotEligible = visibleData.reduce((sum, d) => sum + d.notEligible, 0);
+  const avgEligible =
+    visibleData.length > 0
+      ? Math.round(
+          visibleData.reduce((s: any, d: any) => s + d.eligible, 0) /
+            visibleData.length,
+        )
+      : 0;
+  const avgNotEligible = totalStudents - avgEligible;
+  const avgAttendance =
+    visibleData.length > 0
+      ? Math.round(
+          visibleData.reduce((s: any, d: any) => s + d.avgAttendance, 0) /
+            visibleData.length,
+        )
+      : 0;
 
   return (
-    <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Students" value="1,040" icon={<Users className="w-5 h-5" />} />
-        <StatCard title="Overall Eligible" value="830" icon={<CheckCircle2 className="w-5 h-5" />} variant="success" />
-        <StatCard title="Not Eligible" value="210" icon={<AlertTriangle className="w-5 h-5" />} variant="destructive" />
-        <StatCard title="Eligibility Rate" value="80%" icon={<Shield className="w-5 h-5" />} variant="accent" />
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+          <div className="p-3 bg-blue-100/50 text-blue-600 rounded-xl">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">TOTAL STUDENTS</p>
+            <h3 className="text-2xl font-bold text-slate-900 mt-1">
+              {totalStudents}
+            </h3>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+          <div className="p-3 bg-emerald-100/50 text-emerald-600 rounded-xl">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">AVG ELIGIBLE</p>
+            <h3 className="text-2xl font-bold text-emerald-600 mt-1">
+              {avgEligible}
+            </h3>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+          <div className="p-3 bg-rose-100/50 text-rose-600 rounded-xl">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">
+              AVG NOT ELIGIBLE
+            </p>
+            <h3 className="text-2xl font-bold text-rose-600 mt-1">
+              {avgNotEligible}
+            </h3>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+          <div className="p-3 bg-indigo-100/50 text-indigo-600 rounded-xl">
+            <Shield className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">AVG ATTENDANCE</p>
+            <h3 className="text-2xl font-bold text-indigo-600 mt-1">
+              {avgAttendance}%
+            </h3>
+          </div>
+        </div>
       </div>
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-sans font-semibold">Department-wise Eligibility Report</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => toast({ title: "Report Downloaded", description: "Eligibility report has been exported as CSV." })}>
-            <Download className="w-4 h-4 mr-1" /> Export
-          </Button>
-        </CardHeader>
-        <CardContent>
+      <Card className="border-slate-200 shadow-md rounded-2xl overflow-hidden bg-white">
+        <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-slate-800">
+            <FileSpreadsheet className="w-5 h-5 text-primary" />
+            <h2 className="text-base font-semibold">Report View</h2>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-3 w-full xl:w-auto">
+            <div className="relative group">
+              <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary z-10 pointer-events-none" />
+              <Select value={semesterNumber} onValueChange={setSemesterNumber}>
+                <SelectTrigger className="h-10 pl-9 md:w-[130px] bg-white border-slate-200 rounded-xl font-medium text-slate-700 shadow-sm transition-all focus:ring-2 focus:ring-primary/20">
+                  <SelectValue placeholder="Semester" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                    <SelectItem
+                      key={num}
+                      value={`${num}${num === 1 ? "st" : num === 2 ? "nd" : num === 3 ? "rd" : "th"}`}
+                    >
+                      {num}
+                      {num === 1
+                        ? "st"
+                        : num === 2
+                          ? "nd"
+                          : num === 3
+                            ? "rd"
+                            : "th"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative group">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary z-10 pointer-events-none" />
+              <Select value={reportDept} onValueChange={setReportDept}>
+                <SelectTrigger className="h-10 pl-9 md:w-[130px] bg-white border-slate-200 rounded-xl font-medium text-slate-700 shadow-sm transition-all focus:ring-2 focus:ring-primary/20">
+                  <SelectValue placeholder="Dept" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {departments.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      No Departments Found
+                    </SelectItem>
+                  ) : (
+                    departments.map((d: any) => (
+                      <SelectItem
+                        key={d.department_id}
+                        value={String(d.department_id)}
+                      >
+                        {d.department_name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative group">
+              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary z-10 pointer-events-none" />
+              <Select value={semester} onValueChange={setSemester}>
+                <SelectTrigger className="h-10 pl-9 md:w-[180px] bg-white border-slate-200 rounded-xl font-medium text-slate-700 shadow-sm transition-all focus:ring-2 focus:ring-primary/20">
+                  <SelectValue placeholder="Period" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="Even (Jan-Jun)">Even (Jan-Jun)</SelectItem>
+                  <SelectItem value="Odd (Jul-Dec)">Odd (Jul-Dec)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Department</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Eligible</TableHead>
-                <TableHead>Not Eligible</TableHead>
-                <TableHead>Avg Attendance</TableHead>
+            <TableHeader className="bg-slate-50">
+              <TableRow className="border-slate-100 hover:bg-transparent">
+                <TableHead className="font-semibold text-slate-600 h-12 pl-6">
+                  Month
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600">
+                  Total Students
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600">
+                  Eligible
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600">
+                  Not Eligible
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600">
+                  Avg Attendance
+                </TableHead>
+                <TableHead className="font-semibold text-slate-600 text-right pr-6">
+                  Action
+                </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {deptReports.map((d) => (
-                <TableRow key={d.dept}>
-                  <TableCell className="font-medium">{d.dept}</TableCell>
-                  <TableCell>{d.total}</TableCell>
-                  <TableCell className="text-success font-semibold">{d.eligible}</TableCell>
-                  <TableCell className="text-destructive font-semibold">{d.notEligible}</TableCell>
-                  <TableCell className={`font-semibold ${d.avg >= 75 ? "text-success" : "text-destructive"}`}>{d.avg}%</TableCell>
+              {visibleData.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="h-48 text-center text-slate-400"
+                  >
+                    No data available for {semesterNumber} sem in this period.
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                visibleData.map((d: any) => (
+                  <TableRow
+                    key={d.month}
+                    className="group border-slate-100 hover:bg-slate-50/80 transition-colors"
+                  >
+                    <TableCell className="font-medium text-slate-900 pl-6">
+                      {d.month}
+                    </TableCell>
+                    <TableCell className="text-slate-600 font-medium">
+                      {d.total}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                        {d.eligible}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-100">
+                        {d.notEligible}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`font-bold text-sm ${d.avgAttendance >= 75 ? "text-emerald-600" : "text-rose-600"}`}
+                      >
+                        {d.avgAttendance}%
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportMonth(monthMap[d.month])}
+                        className="rounded-xl border-slate-200 text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm"
+                      >
+                        <Download className="w-3.5 h-3.5 mr-2" />
+                        Export
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
@@ -310,12 +721,16 @@ const ExamControllerDashboard = () => {
   const path = location.pathname;
 
   let content;
-  if (path === "/exam-controller/eligibility") content = <EligibilityPage />;
-  else if (path === "/exam-controller/reports") content = <ReportsPage />;
-  else content = <ExamDashboardPage />;
+  if (path === "/exam-controller/reports") content = <ReportsPage />;
+  else content = <EligibilityPage />;
 
   return (
-    <DashboardLayout title="Exam Controller" subtitle="Eligibility & Reports" navItems={navItems} role="Exam Controller">
+    <DashboardLayout
+      title="Exam Controller"
+      subtitle="Eligibility & Reports"
+      navItems={navItems}
+      role="Exam Controller"
+    >
       {content}
     </DashboardLayout>
   );

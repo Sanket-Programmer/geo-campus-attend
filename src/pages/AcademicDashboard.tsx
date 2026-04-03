@@ -1,94 +1,310 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
-import StatCard from "@/components/StatCard";
-import { Building2, Users, BookOpen, BarChart3, GraduationCap, UserPlus, Trash2, Edit, Eye, EyeOff, School } from "lucide-react";
+// import StatCard from "@/components/StatCard";
+import {
+  Users,
+  BookOpen,
+  GraduationCap,
+  UserPlus,
+  Trash2,
+  Edit,
+  Eye,
+  EyeOff,
+  School,
+  LayoutDashboard,
+  Search,
+  Hash,
+  Mail,
+  Phone,
+  Plus,
+  Loader2,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { authFetch } from "../../utils/authFetch";
 
 const navItems = [
-  { title: "Dashboard", url: "/academic", icon: BarChart3 },
-  { title: "Students", url: "/academic/students", icon: Users },
-  { title: "Teachers", url: "/academic/teachers", icon: GraduationCap },
-  { title: "Classes", url: "/academic/classes", icon: School },
-  { title: "Subjects", url: "/academic/subjects", icon: BookOpen },
+  { title: "Dashboard", url: "/academic", icon: LayoutDashboard },
+  { title: "Students Management", url: "/academic/students", icon: Users },
+  {
+    title: "Teacher Management",
+    url: "/academic/teachers",
+    icon: GraduationCap,
+  },
+  { title: "Classes Management", url: "/academic/classes", icon: School },
+  { title: "Subjects Management", url: "/academic/subjects", icon: BookOpen },
 ];
 
 const departments = [
-  { name: "Computer Science", students: 320, teachers: 18, avgAttendance: 82 },
-  { name: "Electronics", students: 240, teachers: 14, avgAttendance: 78 },
-  { name: "Mechanical", students: 280, teachers: 16, avgAttendance: 75 },
-  { name: "Civil", students: 200, teachers: 12, avgAttendance: 80 },
-];
-
-const initialStudents = [
-  { id: "STU001", name: "Alex Johnson", email: "alex@uni.edu", dept: "CSE", year: "3rd", semester: "5th", phone: "9876543210", status: "Active", password: "alex@123" },
-  { id: "STU009", name: "Tom Harris", email: "tom@uni.edu", dept: "ECE", year: "2nd", semester: "3rd", phone: "9876543211", status: "Active", password: "tom@123" },
-  { id: "STU010", name: "Anna White", email: "anna@uni.edu", dept: "ME", year: "4th", semester: "7th", phone: "9876543212", status: "Active", password: "anna@123" },
-  { id: "STU011", name: "Mike Ross", email: "mike@uni.edu", dept: "CSE", year: "1st", semester: "1st", phone: "9876543213", status: "Active", password: "mike@123" },
-  { id: "STU012", name: "Rachel Green", email: "rachel@uni.edu", dept: "CE", year: "2nd", semester: "4th", phone: "9876543214", status: "Active", password: "rachel@123" },
-];
-
-const classOptions = ["CSE-A", "CSE-B", "ECE-A", "ECE-B", "ME-A", "ME-B", "CE-A", "CE-B"];
-
-const initialTeachers = [
-  { id: "TCH001", name: "Dr. Sarah Williams", email: "sarah@uni.edu", dept: "CSE", designation: "Professor", phone: "9876500001", subjects: 3, status: "Active", password: "sarah@123", assignedClass: ["CSE-A"], subjectsAssigned: ["CS201", "CS402"] },
-  { id: "TCH002", name: "Prof. John Smith", email: "john@uni.edu", dept: "CSE", designation: "Associate Prof", phone: "9876500002", subjects: 2, status: "Active", password: "john@123", assignedClass: ["CSE-B"], subjectsAssigned: ["CS301"] },
-  { id: "TCH003", name: "Dr. Lisa Wang", email: "lisa@uni.edu", dept: "ECE", designation: "Professor", phone: "9876500003", subjects: 3, status: "Active", password: "lisa@123", assignedClass: ["ECE-A", "ECE-B"], subjectsAssigned: ["EC201"] },
-  { id: "TCH004", name: "Prof. Alan Brown", email: "alan@uni.edu", dept: "ME", designation: "Assistant Prof", phone: "9876500004", subjects: 2, status: "Active", password: "alan@123", assignedClass: ["ME-A"], subjectsAssigned: ["ME301"] },
-  { id: "TCH005", name: "Dr. Priya Sharma", email: "priya@uni.edu", dept: "CE", designation: "Professor", phone: "9876500005", subjects: 2, status: "On Leave", password: "priya@123", assignedClass: ["CE-A"], subjectsAssigned: [] },
-];
-
-const initialSubjects = [
-  { code: "CS201", name: "Data Structures", dept: "CSE", teacher: "Dr. Sarah Williams", semester: "3rd", credits: 4, students: 48 },
-  { code: "CS301", name: "Database Systems", dept: "CSE", teacher: "Prof. John Smith", semester: "5th", credits: 4, students: 45 },
-  { code: "EC201", name: "Digital Electronics", dept: "ECE", teacher: "Dr. Lisa Wang", semester: "3rd", credits: 3, students: 42 },
-  { code: "ME301", name: "Thermodynamics", dept: "ME", teacher: "Prof. Alan Brown", semester: "5th", credits: 4, students: 50 },
-  { code: "CS402", name: "Software Engineering", dept: "CSE", teacher: "Dr. Sarah Williams", semester: "7th", credits: 3, students: 40 },
+  { name: "CSE", students: 320, teachers: 18, avgAttendance: 82, id: 1 },
+  { name: "ECE", students: 240, teachers: 14, avgAttendance: 78, id: 2 },
+  { name: "ME", students: 280, teachers: 16, avgAttendance: 75, id: 3 },
+  { name: "IT", students: 200, teachers: 12, avgAttendance: 80, id: 4 },
 ];
 
 // ---- Dashboard Page ----
-function AcademicDashboardPage() {
+const StatCard = ({ title, value, icon, variant }) => {
+  const variantStyles = {
+    primary: "bg-blue-50 text-blue-600 border-blue-100",
+    accent: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    success: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    warning: "bg-amber-50 text-amber-600 border-amber-100",
+  };
+
   return (
-    <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Students" value="1,040" icon={<GraduationCap className="w-5 h-5" />} />
-        <StatCard title="Teachers" value="60" icon={<Users className="w-5 h-5" />} variant="accent" />
-        <StatCard title="Departments" value="4" icon={<Building2 className="w-5 h-5" />} />
-        <StatCard title="Avg Attendance" value="79%" icon={<BarChart3 className="w-5 h-5" />} variant="warning" />
+    <Card className="shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden border-border/50">
+      <CardContent className="p-5 flex flex-col justify-between h-full">
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className={`p-2 rounded-lg border transition-transform group-hover:scale-110 duration-300 ${variantStyles[variant] || "bg-muted text-muted-foreground"}`}
+          >
+            {icon}
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/80">
+            {title}
+          </p>
+        </div>
+        <p className="text-2xl font-black tracking-tighter truncate text-foreground">
+          {value}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+function AcademicDashboardPage() {
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [subjectsList, setSubjectsList] = useState([]);
+
+  // --- PRESERVED BACKEND LOGIC ---
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        setLoading(true);
+        const res = await authFetch(
+          "http://localhost:5000/api/departments/details",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+        if (!res) return;
+        const data = await res.json();
+        setDepartments(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.log("Error fetching department details:", err);
+        setDepartments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDepartments();
+  }, []);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const res = await authFetch("http://localhost:5000/api/subjects", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        if (!res) return;
+        const data = await res.json();
+        setSubjectsList(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.log("Error fetching subjects:", err);
+        setSubjectsList([]);
+      }
+    };
+    fetchSubjects();
+  }, []);
+
+  const totalStudents = departments.reduce(
+    (sum, d) => sum + Number(d.total_students),
+    0,
+  );
+  const totalTeachers = departments.reduce(
+    (sum, d) => sum + Number(d.total_teachers),
+    0,
+  );
+  const totalSubjects = subjectsList.length;
+  const totalClasses = departments.reduce(
+    (sum, d) => sum + Number(d.total_classes),
+    0,
+  );
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* HEADER SECTION */}
+      <div className="flex items-center gap-2 mb-2">
+        <LayoutDashboard className="w-6 h-6 text-primary" />
+        <h1 className="text-2xl font-black tracking-tight uppercase">
+          Academic Overview
+        </h1>
       </div>
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-sans font-semibold">Department-wise Attendance</CardTitle>
+      {/* MODERN STAT CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Students Added"
+          value={String(totalStudents)}
+          icon={<GraduationCap className="w-4 h-4" />}
+          variant="success"
+        />
+        <StatCard
+          title="Total Teachers Addded"
+          value={String(totalTeachers)}
+          icon={<Users className="w-4 h-4" />}
+          variant="accent"
+        />
+        <StatCard
+          title="Total Subjects Added"
+          value={String(totalSubjects)}
+          icon={<BookOpen className="w-4 h-4" />}
+          variant="primary"
+        />
+        <StatCard
+          title="Total Classes Added"
+          value={String(totalClasses)}
+          icon={<School className="w-4 h-4" />}
+          variant="warning"
+        />
+      </div>
+
+      {/* MODERN TABLE VIEW */}
+      <Card className="border-none shadow-md bg-card/60 ring-1 ring-border/50 overflow-hidden rounded-2xl">
+        <CardHeader className="border-b border-border/50 bg-muted/20 px-6 py-4">
+          <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">
+            Department Distribution
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Department</TableHead>
-                <TableHead>Students</TableHead>
-                <TableHead>Teachers</TableHead>
-                <TableHead>Avg Attendance</TableHead>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 h-12">
+                  Department Name
+                </TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest px-8">
+                  School
+                </TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 text-center">
+                  Resources
+                </TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 text-right">
+                  Capacity
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {departments.map((d) => (
-                <TableRow key={d.name}>
-                  <TableCell className="font-medium">{d.name}</TableCell>
-                  <TableCell>{d.students}</TableCell>
-                  <TableCell>{d.teachers}</TableCell>
-                  <TableCell className={`font-semibold ${d.avgAttendance >= 75 ? "text-success" : "text-destructive"}`}>{d.avgAttendance}%</TableCell>
+              {loading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-20 animate-pulse font-bold text-muted-foreground"
+                  >
+                    Retrieving Academic Data...
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : departments.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-20 font-bold text-muted-foreground"
+                  >
+                    No department records available.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                departments.map((d: any) => (
+                  <TableRow
+                    key={d.department_id}
+                    className="group hover:bg-primary/[0.02] transition-colors"
+                  >
+                    <TableCell className="px-6 py-4">
+                      <div>
+                        <p className="font-bold text-sm text-foreground uppercase">
+                          {d.department_name}
+                        </p>
+                        <p className="text-[9px] font-mono text-muted-foreground">
+                          ID: {d.department_id}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-6">
+                      <Badge
+                        variant="outline"
+                        className="bg-background font-bold text-[10px] uppercase rounded-md border-border/60"
+                      >
+                        {d.school_name}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-6 text-center">
+                      <div className="inline-flex items-center gap-4 text-xs font-bold">
+                        <div className="flex flex-col items-center">
+                          <span className="text-muted-foreground text-[9px] uppercase font-black">
+                            Tch
+                          </span>
+                          <span>{d.total_teachers}</span>
+                        </div>
+                        <div className="w-px h-4 bg-border" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-muted-foreground text-[9px] uppercase font-black">
+                            Sub
+                          </span>
+                          <span>{d.total_subjects}</span>
+                        </div>
+                        <div className="w-px h-4 bg-border" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-muted-foreground text-[9px] uppercase font-black">
+                            Cls
+                          </span>
+                          <span>{d.total_classes}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-6 text-right">
+                      <div className="inline-block text-right">
+                        <p className="text-sm font-black text-primary">
+                          {d.total_students}
+                        </p>
+                        <p className="text-[9px] font-black uppercase text-muted-foreground">
+                          Students
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -96,314 +312,798 @@ function AcademicDashboardPage() {
     </div>
   );
 }
-
-// ---- Password Cell Component ----
-function PasswordCell({ password }: { password: string }) {
-  const [visible, setVisible] = useState(false);
-  return (
-    <div className="flex items-center gap-1">
-      <span className="text-xs font-mono">{visible ? password : "••••••••"}</span>
-      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setVisible(!visible)}>
-        {visible ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-      </Button>
-    </div>
-  );
-}
-
 
 // ---- Students Page ----
 function StudentsPage() {
+  interface Student {
+    regd: string;
+    name: string;
+    email: string;
+    dept: string;
+    department_id: string;
+    password: string;
+    class_id: string;
+    semester: string;
+    phone: string;
+    subjectsRegistered?: string[];
+  }
+
+  const API = "http://localhost:5000/api/students";
   const { toast } = useToast();
-  const [studentsList, setStudentsList] = useState(initialStudents);
+
+  const [studentsList, setStudentsList] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [departments, setDepartments] = useState([]);
+
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [editStudent, setEditStudent] = useState<typeof initialStudents[0] | null>(null);
-  const [deleteStudent, setDeleteStudent] = useState<typeof initialStudents[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", year: "1st", phone: "", password: "", semester: "1st", subjectsRegistered: [] as string[] });
   const [search, setSearch] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const filtered = studentsList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
+  const [editStudent, setEditStudent] = useState<Student | null>(null);
+  const [deleteStudent, setDeleteStudent] = useState<Student | null>(null);
+  const [form, setForm] = useState({
+    regd: "",
+    name: "",
+    email: "",
+    dept: "Select Dept",
+    department_id: "",
+    class_id: "",
+    phone: "",
+    password: "",
+    semester: "Select Sem",
+    subjectsRegistered: [] as string[],
+  });
 
-  const handleAdd = () => {
-    const newStudent = {
-      id: `STU${String(studentsList.length + 20).padStart(3, "0")}`,
-      name: form.name,
-      email: form.email,
-      dept: form.dept,
-      year: form.year,
-      semester: form.semester,
-      phone: form.phone,
-      password: form.password || "default@123",
-      status: "Active",
-    };
-    setStudentsList([...studentsList, newStudent]);
-    setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", year: "1st", phone: "", password: "", semester: "1st", subjectsRegistered: [] });
-    toast({ title: "Student Added", description: `${form.name} has been registered successfully.` });
+  const fetchStudents = async () => {
+    try {
+      const res = await authFetch(API, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, //added authorization header
+      });
+      if (!res) return;
+      const data = await res.json();
+      setStudentsList(data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleEdit = () => {
+  const handleAdd = async () => {
+    try {
+      const res = await authFetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }, //added authorization header
+        body: JSON.stringify(form),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      fetchStudents();
+      setShowAdd(false);
+      setForm({
+        regd: "",
+        name: "",
+        email: "",
+        dept: "Select Dept",
+        department_id: "",
+        class_id: "",
+        phone: "",
+        password: "",
+        semester: "Select Sem",
+        subjectsRegistered: [],
+      });
+      toast({ title: "Success", description: "Student added successfully." });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = async () => {
     if (!editStudent) return;
-    setStudentsList(studentsList.map((s) => (s.id === editStudent.id ? editStudent : s)));
-    setShowEdit(false);
-    toast({ title: "Student Updated", description: `${editStudent.name}'s details have been updated.` });
+    try {
+      const res = await authFetch(`${API}/${editStudent.regd}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }, //added authorization header
+        body: JSON.stringify(editStudent),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      fetchStudents();
+      setShowEdit(false);
+      toast({ title: "Updated", description: "Student details updated." });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDelete = () => {
-    if (!deleteStudent) return;
-    setStudentsList(studentsList.filter((s) => s.id !== deleteStudent.id));
-    setShowDelete(false);
-    toast({ title: "Student Removed", description: `${deleteStudent.name} has been removed from the system.` });
+  const handleOpenEdit = async (regd: string) => {
+    const res = await authFetch(`${API}/${regd}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, //added authorization header
+    });
+    if (!res) return;
+    const data = await res.json();
+    await fetchSubjectsByDept(data.dept, data.semester);
+    setEditStudent(data);
+    setShowEdit(true);
   };
+
+  const handleDelete = async () => {
+    if (!deleteStudent) return;
+    try {
+      const res = await authFetch(`${API}/${deleteStudent.regd}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, //added authorization header
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      fetchStudents();
+      setShowDelete(false);
+      toast({ title: "Deleted", description: "Student record removed." });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchSubjectsByDept = async (dept: string, semester: string) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/subjects/by-department/${dept}?semester=${semester}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, //added authorization header
+        },
+      );
+      if (!res) return;
+      const data = await res.json();
+      setSubjects(data);
+    } catch (err) {
+      setSubjects([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const res1 = await authFetch("http://localhost:5000/api/classes", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      if (res1) {
+        const data1 = await res1.json();
+        setClasses(data1);
+      }
+      const res2 = await authFetch(
+        "http://localhost:5000/api/departments/details",
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+
+      if (!res2) return;
+
+      const data2 = await res2.json();
+      setDepartments(Array.isArray(data2) ? data2 : []);
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (form.dept !== "Select Dept" && form.semester !== "Select Sem") {
+      fetchSubjectsByDept(form.dept, form.semester);
+    }
+  }, [form.dept, form.semester]);
+
+  const filtered = studentsList.filter((s) => {
+    const name = s.name?.toLowerCase() || "";
+    const regd = String(s.regd ?? "");
+    return name.includes(search.toLowerCase()) || regd.includes(search);
+  });
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Students" value={studentsList.length} icon={<GraduationCap className="w-5 h-5" />} />
-        <StatCard title="CSE" value={studentsList.filter(s => s.dept === "CSE").length} icon={<Users className="w-5 h-5" />} variant="accent" />
-        <StatCard title="ECE" value={studentsList.filter(s => s.dept === "ECE").length} icon={<Users className="w-5 h-5" />} />
-        <StatCard title="Active" value={studentsList.filter(s => s.status === "Active").length} icon={<Users className="w-5 h-5" />} variant="success" />
-      </div>
-
-      <Card className="shadow-card">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-sans font-semibold">Manage Students</CardTitle>
-          <div className="flex gap-2">
-            <Input placeholder="Search..." className="h-8 w-40 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <Button size="sm" onClick={() => setShowAdd(true)}><UserPlus className="w-4 h-4 mr-1" /> Add Student</Button>
+      <Card className="border-none shadow-md bg-card/50">
+        <CardHeader className="flex lg:flex-row flex-col justify-between space-y-0 pb-7 gap-4">
+          <CardTitle className="text-xl font-bold tracking-tight">
+            Student Directory
+          </CardTitle>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or regd..."
+                className="pl-8 bg-background/50 w-full"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={() => setShowAdd(true)}
+              className="px-6 w-full md:w-auto"
+            >
+              <UserPlus className="mr-2 h-4 w-4" /> Add Student
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Password</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Semester</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-mono text-xs">{s.id}</TableCell>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{s.email}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.dept}</TableCell>
-                  <TableCell>{s.year}</TableCell>
-                  <TableCell>
-                    <PasswordCell password={s.password} />
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{s.phone}</TableCell>
-                  <TableCell>{(s as any).semester || "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditStudent({ ...s }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => { setDeleteStudent(s); setShowDelete(true); }}><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </TableCell>
+          <div className="rounded-xl border border-border/50 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="w-[120px]">Regd No.</TableHead>
+                  <TableHead>Student Details</TableHead>
+                  <TableHead>Contact Details</TableHead>
+                  <TableHead>Academic Info</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((s) => (
+                  <TableRow key={s.regd} className="hover:bg-muted/30">
+                    <TableCell className="font-mono text-sm font-semibold">
+                      {s.regd || s.student_id}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm">{s.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Mail className="h-3 w-3" /> {s.email}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Phone className="h-3 w-3" /> {s.phone || "N/A"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="font-medium">
+                          {s.dept}
+                        </Badge>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {s.classes} • {s.semester}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-primary"
+                          onClick={() => handleOpenEdit(s.regd)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:bg-destructive"
+                          onClick={() => {
+                            setDeleteStudent(s);
+                            setShowDelete(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Add Student Dialog */}
+      {/* ADD DIALOG */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Student</DialogTitle>
-            <DialogDescription>Fill in the details to register a new student.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Full Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Doe" /></div>
-              <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@uni.edu" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Password</Label><Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" /></div>
-              <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210" /></div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Department</Label>
-                <Select value={form.dept} onValueChange={(v) => setForm({ ...form, dept: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CSE">CSE</SelectItem>
-                    <SelectItem value="ECE">ECE</SelectItem>
-                    <SelectItem value="ME">ME</SelectItem>
-                    <SelectItem value="CE">CE</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Year</Label>
-                <Select value={form.year} onValueChange={(v) => setForm({ ...form, year: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1st">1st Year</SelectItem>
-                    <SelectItem value="2nd">2nd Year</SelectItem>
-                    <SelectItem value="3rd">3rd Year</SelectItem>
-                    <SelectItem value="4th">4th Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Semester</Label>
-                <Select value={form.semester} onValueChange={(v) => setForm({ ...form, semester: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1st">1st Sem</SelectItem>
-                    <SelectItem value="2nd">2nd Sem</SelectItem>
-                    <SelectItem value="3rd">3rd Sem</SelectItem>
-                    <SelectItem value="4th">4th Sem</SelectItem>
-                    <SelectItem value="5th">5th Sem</SelectItem>
-                    <SelectItem value="6th">6th Sem</SelectItem>
-                    <SelectItem value="7th">7th Sem</SelectItem>
-                    <SelectItem value="8th">8th Sem</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Subjects Registered</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {initialSubjects.map((sub) => (
-                  <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
-                    <input
-                      type="checkbox"
-                      checked={form.subjectsRegistered.includes(sub.code)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setForm({ ...form, subjectsRegistered: [...form.subjectsRegistered, sub.code] });
-                        } else {
-                          setForm({ ...form, subjectsRegistered: form.subjectsRegistered.filter((c) => c !== sub.code) });
-                        }
-                      }}
-                      className="rounded"
-                    />
-                    <span>{sub.code} - {sub.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+        <DialogContent className="w-[95vw] sm:max-w-[650px] p-0 overflow-hidden rounded-2xl border-none max-h-[95vh] flex flex-col">
+          <div className="bg-primary px-6 py-6 md:py-8 text-primary-foreground shrink-0">
+            <DialogHeader>
+              <DialogTitle className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                <UserPlus className="h-5 w-5 md:h-6 md:w-6" /> Register New
+                Student
+              </DialogTitle>
+              <DialogDescription className="text-primary-foreground/80 text-xs md:text-sm">
+                Enter student credentials and assign academic batches.
+              </DialogDescription>
+            </DialogHeader>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button onClick={handleAdd} disabled={!form.name || !form.email}>Add Student</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Edit Student Dialog */}
-      <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Student</DialogTitle>
-            <DialogDescription>Update student details.</DialogDescription>
-          </DialogHeader>
-          {editStudent && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Full Name</Label><Input value={editStudent.name} onChange={(e) => setEditStudent({ ...editStudent, name: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Email</Label><Input value={editStudent.email} onChange={(e) => setEditStudent({ ...editStudent, email: e.target.value })} /></div>
+          <div className="p-4 md:p-6 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 bg-background">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Registration Number
+                  </Label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      className="pl-9"
+                      placeholder="e.g. 2101..."
+                      value={form.regd}
+                      onChange={(e) =>
+                        setForm({ ...form, regd: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Full Name
+                  </Label>
+                  <Input
+                    placeholder="John Doe"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Email
+                  </Label>
+                  <Input
+                    type="email"
+                    placeholder="john@university.com"
+                    value={form.email}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Phone
+                  </Label>
+                  <Input
+                    placeholder="10-digit number"
+                    value={form.phone}
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Department</Label>
-                  <Select value={editStudent.dept} onValueChange={(v) => setEditStudent({ ...editStudent, dept: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Department
+                  </Label>
+                  <Select
+                    value={form.department_id}
+                    onValueChange={(v) => {
+                      const deptName = departments.find(
+                        (d) => String(d.department_id) === v,
+                      )?.department_name;
+
+                      setForm({
+                        ...form,
+                        department_id: v,
+                        dept: deptName || "Select Dept",
+                        subjectsRegistered: [],
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Dept" />
+                    </SelectTrigger>
+
                     <SelectContent>
-                      <SelectItem value="CSE">CSE</SelectItem>
-                      <SelectItem value="ECE">ECE</SelectItem>
-                      <SelectItem value="ME">ME</SelectItem>
-                      <SelectItem value="CE">CE</SelectItem>
+                      {departments.map((d) => (
+                        <SelectItem
+                          key={d.department_id}
+                          value={String(d.department_id)}
+                        >
+                          {d.department_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Year</Label>
-                  <Select value={editStudent.year} onValueChange={(v) => setEditStudent({ ...editStudent, year: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Semester
+                  </Label>
+                  <Select
+                    value={form.semester}
+                    onValueChange={(v) =>
+                      setForm({ ...form, semester: v, subjectsRegistered: [] })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Semester" />
+                    </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1st">1st Year</SelectItem>
-                      <SelectItem value="2nd">2nd Year</SelectItem>
-                      <SelectItem value="3rd">3rd Year</SelectItem>
-                      <SelectItem value="4th">4th Year</SelectItem>
+                      {[
+                        "1st",
+                        "2nd",
+                        "3rd",
+                        "4th",
+                        "5th",
+                        "6th",
+                        "7th",
+                        "8th",
+                      ].map((sem) => (
+                        <SelectItem key={sem} value={sem}>
+                          {sem}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Phone</Label><Input value={editStudent.phone} onChange={(e) => setEditStudent({ ...editStudent, phone: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Semester</Label>
-                  <Select value={(editStudent as any).semester || "1st"} onValueChange={(v) => setEditStudent({ ...editStudent, semester: v } as any)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Class Batch
+                  </Label>
+                  <Select
+                    value={form.class_id}
+                    onValueChange={(v) => setForm({ ...form, class_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Class" />
+                    </SelectTrigger>
+
                     <SelectContent>
-                      <SelectItem value="1st">1st Sem</SelectItem>
-                      <SelectItem value="2nd">2nd Sem</SelectItem>
-                      <SelectItem value="3rd">3rd Sem</SelectItem>
-                      <SelectItem value="4th">4th Sem</SelectItem>
-                      <SelectItem value="5th">5th Sem</SelectItem>
-                      <SelectItem value="6th">6th Sem</SelectItem>
-                      <SelectItem value="7th">7th Sem</SelectItem>
-                      <SelectItem value="8th">8th Sem</SelectItem>
+                      {classes.map((c: any) => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Password</Label><Input type="password" value={editStudent.password} onChange={(e) => setEditStudent({ ...editStudent, password: e.target.value })} /></div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">
+                    Login Password
+                  </Label>
+                  <div className="relative group">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="pr-12"
+                      value={form.password}
+                      onChange={(e) =>
+                        setForm({ ...form, password: e.target.value })
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Subjects Registered</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {initialSubjects.map((sub) => (
-                    <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
+
+              <div className="col-span-1 md:col-span-2 space-y-3">
+                <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
+                  <BookOpen className="h-3 w-3" /> Subject Enrolment
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[150px] overflow-y-auto p-1">
+                  {subjects.map((sub: any) => (
+                    <label
+                      key={sub.subject_code}
+                      className={`flex items-center gap-3 p-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all ${form.subjectsRegistered.includes(sub.subject_code) ? "bg-primary/5 border-primary ring-1 ring-primary" : "hover:bg-muted"}`}
+                    >
                       <input
                         type="checkbox"
-                        checked={((editStudent as any).subjectsRegistered || []).includes(sub.code)}
+                        className="accent-primary"
+                        checked={form.subjectsRegistered.includes(
+                          sub.subject_code,
+                        )}
                         onChange={(e) => {
-                          const current = (editStudent as any).subjectsRegistered || [];
-                          if (e.target.checked) {
-                            setEditStudent({ ...editStudent, subjectsRegistered: [...current, sub.code] } as any);
-                          } else {
-                            setEditStudent({ ...editStudent, subjectsRegistered: current.filter((c: string) => c !== sub.code) } as any);
-                          }
+                          const list = form.subjectsRegistered;
+                          setForm({
+                            ...form,
+                            subjectsRegistered: e.target.checked
+                              ? [...list, sub.subject_code]
+                              : list.filter((i) => i !== sub.subject_code),
+                          });
                         }}
-                        className="rounded"
                       />
-                      <span>{sub.code} - {sub.name}</span>
+                      <span className="truncate">
+                        {sub.subject_code} - {sub.subject_name}
+                      </span>
                     </label>
                   ))}
                 </div>
               </div>
             </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEdit(false)}>Cancel</Button>
-            <Button onClick={handleEdit}>Save Changes</Button>
+          </div>
+
+          <DialogFooter className="p-4 md:p-6 bg-muted/30 border-t shrink-0 flex-row justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowAdd(false)}
+              className="bg-red-500 text-white hover:bg-red-400"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAdd}
+              disabled={!form.name || form.dept === "Select Dept"}
+            >
+              Confirm
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      {/* EDIT DIALOG */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent className="w-[95vw] sm:max-w-[650px] p-0 overflow-hidden rounded-2xl border-none max-h-[95vh] flex flex-col">
+          {editStudent && (
+            <>
+              <div className="px-6 py-5 shrink-0 bg-primary text-primary-foreground">
+                <DialogHeader>
+                  <DialogTitle className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                    <Edit className="h-5 w-5 md:h-6 md:w-6" /> Update Profile
+                  </DialogTitle>
+                  <p className="text-xs md:text-sm text-left">
+                    Editing: {editStudent.name}
+                  </p>
+                </DialogHeader>
+              </div>
+
+              <div className="p-4 md:p-6 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 bg-background">
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold uppercase text-muted-foreground">
+                        Name
+                      </Label>
+                      <Input
+                        value={editStudent.name}
+                        onChange={(e) =>
+                          setEditStudent({
+                            ...editStudent,
+                            name: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold uppercase text-muted-foreground">
+                        Phone
+                      </Label>
+                      <Input
+                        value={editStudent.phone}
+                        onChange={(e) =>
+                          setEditStudent({
+                            ...editStudent,
+                            phone: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold uppercase text-muted-foreground">
+                        Dept
+                      </Label>
+                      <Select
+                        value={String(editStudent.department_id || "")}
+                        onValueChange={(v) => {
+                          const up = {
+                            ...editStudent,
+                            department_id: v,
+                            dept: departments.find(
+                              (d) => String(d.department_id) === v,
+                            )?.department_name,
+                            subjectsRegistered: [],
+                          };
+
+                          setEditStudent(up);
+                          fetchSubjectsByDept(up.dept, up.semester); // keep this if your subject API uses dept name
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Dept" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {departments.map((d: any) => (
+                            <SelectItem
+                              key={d.department_id}
+                              value={String(d.department_id)}
+                            >
+                              {d.department_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold uppercase text-muted-foreground">
+                        Sem
+                      </Label>
+                      <Select
+                        value={editStudent.semester}
+                        onValueChange={(v) => {
+                          const up = {
+                            ...editStudent,
+                            semester: v,
+                            subjectsRegistered: [],
+                          };
+                          setEditStudent(up);
+                          fetchSubjectsByDept(up.dept, v);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[
+                            "1st",
+                            "2nd",
+                            "3rd",
+                            "4th",
+                            "5th",
+                            "6th",
+                            "7th",
+                            "8th",
+                          ].map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase text-muted-foreground">
+                      Class
+                    </Label>
+
+                    <Select
+                      value={String(editStudent.class_id || "")}
+                      onValueChange={(v) =>
+                        setEditStudent({
+                          ...editStudent,
+                          class_id: v,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Class" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        {classes.map((c: any) => (
+                          <SelectItem key={c.id} value={String(c.id)}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-1 md:col-span-2 space-y-3 pt-2">
+                    <Label className="text-xs font-bold uppercase text-muted-foreground">
+                      Enrolled Subjects
+                    </Label>
+                    <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto pr-2">
+                      {subjects.map((sub: any) => (
+                        <label
+                          key={sub.subject_code}
+                          className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${editStudent.subjectsRegistered?.includes(sub.subject_code) ? "" : "hover:bg-muted"}`}
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-xs font-black text-muted-foreground">
+                              {sub.subject_code}
+                            </span>
+                            <span className="text-sm font-semibold">
+                              {sub.subject_name}
+                            </span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 rounded-full"
+                            checked={editStudent.subjectsRegistered?.includes(
+                              sub.subject_code,
+                            )}
+                            onChange={(e) => {
+                              const list = editStudent.subjectsRegistered || [];
+                              setEditStudent({
+                                ...editStudent,
+                                subjectsRegistered: e.target.checked
+                                  ? [...list, sub.subject_code]
+                                  : list.filter((i) => i !== sub.subject_code),
+                              });
+                            }}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="p-4 md:p-6 bg-muted/30 border-t shrink-0 flex-row justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEdit(false)}
+                  className="bg-red-500 text-white hover:bg-red-400"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-primary hover:bg-primary/80 text-white"
+                  onClick={handleEdit}
+                >
+                  Save
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* DELETE DIALOG */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remove Student</DialogTitle>
-            <DialogDescription>Are you sure you want to remove {deleteStudent?.name}? This action cannot be undone.</DialogDescription>
+        <DialogContent className="w-[95vw] sm:max-w-[500px] rounded-2xl">
+          <DialogHeader className="items-center text-center">
+            <div className="h-12 w-12 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-2">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-xl">Confirm Deletion</DialogTitle>
+            <DialogDescription className="pt-2 text-sm">
+              Are you sure you want to remove <b>{deleteStudent?.name}</b>?
+              <br className="hidden sm:block" /> This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDelete(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Remove</Button>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-center gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDelete(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              className="w-full sm:w-auto"
+            >
+              Delete Student
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -413,468 +1113,1464 @@ function StudentsPage() {
 
 // ---- Teachers Page ----
 function TeachersPage() {
+  interface Teacher {
+    id: string;
+    name: string;
+    email: string;
+    dept: string;
+    designation: string;
+    phone: string;
+    password?: string;
+    subjectsAssigned?: string[];
+    assignedClass?: string[];
+  }
+
   const { toast } = useToast();
-  const [teachersList, setTeachersList] = useState(initialTeachers);
+
+  const API = "http://localhost:5000/api/teachers";
+
+  const [teachersList, setTeachersList] = useState<Teacher[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
+
+  const [filteredSubjects, setFilteredSubjects] = useState<any[]>([]);
+  const [filteredClasses, setFilteredClasses] = useState<any[]>([]);
+
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [editTeacher, setEditTeacher] = useState<typeof initialTeachers[0] | null>(null);
-  const [deleteTeacher, setDeleteTeacher] = useState<typeof initialTeachers[0] | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [] as string[], assignedClass: [] as string[] });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleAdd = () => {
-    const newTeacher = {
-      id: `TCH${String(teachersList.length + 10).padStart(3, "0")}`,
-      name: form.name,
-      email: form.email,
-      dept: form.dept,
-      designation: form.designation,
-      phone: form.phone,
-      password: form.password || "default@123",
-      subjects: 0,
-      status: "Active",
-      assignedClass: form.assignedClass,
-      subjectsAssigned: form.subjectsAssigned,
-    };
-    setTeachersList([...teachersList, newTeacher]);
-    setShowAdd(false);
-    setForm({ name: "", email: "", dept: "CSE", designation: "Assistant Prof", phone: "", password: "", subjectsAssigned: [], assignedClass: [] });
-    toast({ title: "Teacher Added", description: `${form.name} has been registered successfully.` });
+  const [editTeacher, setEditTeacher] = useState<Teacher | null>(null);
+  const [deleteTeacher, setDeleteTeacher] = useState<Teacher | null>(null);
+
+  const [form, setForm] = useState({
+    id: "",
+    name: "",
+    email: "",
+    dept: "Select Dept",
+    designation: "Select Desgn",
+    phone: "",
+    password: "",
+    subjectsAssigned: [] as string[],
+    assignedClass: [] as string[],
+  });
+
+  const fetchTeachers = async () => {
+    try {
+      const res = await authFetch(API, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      if (!res) return;
+
+      const data = await res.json();
+      setTeachersList(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleEdit = () => {
+  const fetchSubjectsAndClassesBySchool = async (deptName: string) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const [subRes, classRes] = await Promise.all([
+        authFetch(`http://localhost:5000/api/subjects/by-school/${deptName}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        authFetch(`http://localhost:5000/api/classes/by-school/${deptName}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      if (!subRes || !classRes) return;
+
+      const subData = await subRes.json();
+      const classData = await classRes.json();
+
+      setFilteredSubjects(Array.isArray(subData) ? subData : []);
+      setFilteredClasses(Array.isArray(classData) ? classData : []);
+    } catch (err) {
+      console.log("Error fetching filtered data:", err);
+      setFilteredSubjects([]);
+      setFilteredClasses([]);
+    }
+  };
+
+  const handleAdd = async () => {
+    try {
+      const res = await authFetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(form),
+      });
+
+      if (!res) return;
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to add teacher",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      fetchTeachers();
+      setShowAdd(false);
+
+      setForm({
+        id: "",
+        name: "",
+        email: "",
+        dept: "Select Dept",
+        designation: "Select Desgn",
+        phone: "",
+        password: "",
+        subjectsAssigned: [],
+        assignedClass: [],
+      });
+
+      toast({
+        title: "Teacher Added",
+        description: "Teacher has been registered successfully.",
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleEdit = async () => {
     if (!editTeacher) return;
-    setTeachersList(teachersList.map((t) => (t.id === editTeacher.id ? editTeacher : t)));
-    setShowEdit(false);
-    toast({ title: "Teacher Updated", description: `${editTeacher.name}'s details have been updated.` });
+
+    try {
+      const res = await authFetch(`${API}/${editTeacher.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(editTeacher),
+      });
+
+      if (!res) return;
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to update teacher",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      fetchTeachers();
+      setShowEdit(false);
+
+      toast({
+        title: "Teacher Updated",
+        description: "Teacher details updated successfully.",
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTeacher) return;
-    setTeachersList(teachersList.filter((t) => t.id !== deleteTeacher.id));
-    setShowDelete(false);
-    toast({ title: "Teacher Removed", description: `${deleteTeacher.name} has been removed from the system.` });
+
+    try {
+      const res = await authFetch(`${API}/${deleteTeacher.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!res) return;
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to delete teacher",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      fetchTeachers();
+      setShowDelete(false);
+
+      toast({
+        title: "Teacher Removed",
+        description: "Teacher removed successfully.",
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      fetchTeachers();
+
+      const token = localStorage.getItem("token");
+
+      const res1 = await authFetch("http://localhost:5000/api/subjects", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res1) {
+        const data1 = await res1.json();
+        setSubjects(Array.isArray(data1) ? data1 : []);
+      }
+
+      const res2 = await authFetch("http://localhost:5000/api/classes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res2) {
+        const data2 = await res2.json();
+        setClasses(Array.isArray(data2) ? data2 : []);
+      }
+
+      const res3 = await authFetch(
+        "http://localhost:5000/api/departments/details",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (res3) {
+        const data3 = await res3.json();
+        setDepartments(Array.isArray(data3) ? data3 : []);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const DataPill = ({ items }: { items?: string[] }) => {
+    if (!items || items.length === 0)
+      return <span className="text-muted-foreground">—</span>;
+
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item, idx) => (
+          <span
+            key={idx}
+            className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    );
   };
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Teachers" value={teachersList.length} icon={<GraduationCap className="w-5 h-5" />} />
-        <StatCard title="Professors" value={teachersList.filter(t => t.designation.includes("Professor")).length} icon={<Users className="w-5 h-5" />} variant="accent" />
-        <StatCard title="Active" value={teachersList.filter(t => t.status === "Active").length} icon={<Users className="w-5 h-5" />} variant="success" />
-        <StatCard title="On Leave" value={teachersList.filter(t => t.status === "On Leave").length} icon={<Users className="w-5 h-5" />} variant="warning" />
-      </div>
+      <Card className="border-none shadow-md bg-card/50">
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-xl font-bold tracking-tight">
+              Manage Teachers
+            </CardTitle>
+          </div>
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-sans font-semibold">Manage Teachers</CardTitle>
-          <Button size="sm" onClick={() => setShowAdd(true)}><UserPlus className="w-4 h-4 mr-1" /> Add Teacher</Button>
+          <Button
+            size="sm"
+            onClick={() => setShowAdd(true)}
+            className="w-full md:w-auto shadow-sm"
+          >
+            <UserPlus className="w-4 h-4 mr-2" /> Add Teacher
+          </Button>
         </CardHeader>
+
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Designation</TableHead>
-                <TableHead>Password</TableHead>
-                <TableHead>Assigned Class</TableHead>
-                <TableHead>Subjects</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teachersList.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="font-mono text-xs">{t.id}</TableCell>
-                  <TableCell className="font-medium">{t.name}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{t.email}</TableCell>
-                  <TableCell className="text-muted-foreground">{t.dept}</TableCell>
-                  <TableCell className="text-sm">{t.designation}</TableCell>
-                  <TableCell>
-                    <PasswordCell password={t.password} />
-                  </TableCell>
-                  <TableCell className="text-sm">{t.assignedClass.length > 0 ? t.assignedClass.join(", ") : "—"}</TableCell>
-                  <TableCell>{t.subjects}</TableCell>
-                  
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditTeacher({ ...t }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => { setDeleteTeacher(t); setShowDelete(true); }}><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </TableCell>
+          <div className="rounded-xl border border-border/50 overflow-hidden">
+            <Table className="w-full whitespace-nowrap">
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="pl-6">ID</TableHead>
+                  <TableHead>Teacher Info</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Assigned Class</TableHead>
+                  <TableHead>Assigned Subjects</TableHead>
+                  <TableHead className="text-right pr-6">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+
+              <TableBody>
+                {teachersList.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No teachers found. Click "Add Teacher" to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  teachersList.map((t) => (
+                    <TableRow
+                      key={t.id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      <TableCell className="pl-6 font-mono text-xs text-muted-foreground">
+                        {t.id}
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-sm">
+                            {t.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {t.email}
+                          </span>
+                          <span className="text-xs text-muted-foreground mt-0.5">
+                            {t.phone}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm">{t.dept}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {t.designation}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="max-w-[200px] whitespace-normal">
+                        <DataPill items={t.assignedClass} />
+                      </TableCell>
+
+                      <TableCell className="max-w-[250px] whitespace-normal">
+                        <DataPill items={t.subjectsAssigned} />
+                      </TableCell>
+
+                      <TableCell className="text-right pr-6">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 hover:bg-primary"
+                            onClick={async () => {
+                              const res = await authFetch(`${API}/${t.id}`, {
+                                headers: {
+                                  Authorization: `Bearer ${localStorage.getItem(
+                                    "token",
+                                  )}`,
+                                },
+                              });
+
+                              if (!res) return;
+
+                              const data = await res.json();
+                              setEditTeacher({ ...data, password: "" });
+
+                              fetchSubjectsAndClassesBySchool(data.dept);
+
+                              setShowEdit(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 text-destructive hover:bg-destructive"
+                            onClick={() => {
+                              setDeleteTeacher(t);
+                              setShowDelete(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Add Teacher Dialog */}
+      {/* ADD DIALOG */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle>Add New Teacher</DialogTitle>
-            <DialogDescription>Fill in the details to register a new teacher.</DialogDescription>
+            <DialogTitle className="text-xl">Add New Teacher</DialogTitle>
+            <DialogDescription>
+              Fill in the details to register a new teacher in the system.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Full Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Dr. John Doe" /></div>
-              <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@uni.edu" /></div>
+
+          <div className="space-y-5 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Dr. John Doe"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="john@uni.edu"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Teacher ID</Label>
+                <Input
+                  value={form.id}
+                  onChange={(e) => setForm({ ...form, id: e.target.value })}
+                  placeholder="2311XXX"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Password</Label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                    placeholder="••••••••"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="Enter 10-digit number"
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Password</Label><Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" /></div>
-              <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210" /></div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
               <div className="space-y-2">
                 <Label>Department</Label>
-                <Select value={form.dept} onValueChange={(v) => setForm({ ...form, dept: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+
+                <Select
+                  value={form.dept}
+                  onValueChange={(v) => {
+                    setForm({
+                      ...form,
+                      dept: v,
+                      subjectsAssigned: [],
+                      assignedClass: [],
+                    });
+
+                    if (v !== "Select Dept") fetchSubjectsAndClassesBySchool(v);
+                    else {
+                      setFilteredSubjects([]);
+                      setFilteredClasses([]);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Dept" />
+                  </SelectTrigger>
+
                   <SelectContent>
-                    <SelectItem value="CSE">CSE</SelectItem>
-                    <SelectItem value="ECE">ECE</SelectItem>
-                    <SelectItem value="ME">ME</SelectItem>
-                    <SelectItem value="CE">CE</SelectItem>
+                    {departments.map((d: any) => (
+                      <SelectItem
+                        key={d.department_id}
+                        value={d.department_name}
+                      >
+                        {d.department_name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="space-y-2">
                 <Label>Designation</Label>
-                <Select value={form.designation} onValueChange={(v) => setForm({ ...form, designation: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={form.designation}
+                  onValueChange={(v) => setForm({ ...form, designation: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Desgn" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Professor">Professor</SelectItem>
-                    <SelectItem value="Associate Prof">Associate Prof</SelectItem>
-                    <SelectItem value="Assistant Prof">Assistant Prof</SelectItem>
+                    <SelectItem value="Associate Prof">
+                      Associate Prof
+                    </SelectItem>
+                    <SelectItem value="Assistant Prof">
+                      Assistant Prof
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Subjects Assigned</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {initialSubjects.map((sub) => (
-                  <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
-                    <input
-                      type="checkbox"
-                      checked={form.subjectsAssigned.includes(sub.code)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setForm({ ...form, subjectsAssigned: [...form.subjectsAssigned, sub.code] });
-                        } else {
-                          setForm({ ...form, subjectsAssigned: form.subjectsAssigned.filter((c) => c !== sub.code) });
-                        }
-                      }}
-                      className="rounded"
-                    />
-                    <span>{sub.code} - {sub.name}</span>
-                  </label>
-                ))}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              <div className="space-y-3">
+                <Label>Subjects Assigned</Label>
+                <div className="grid gap-2 max-h-40 overflow-y-auto p-1">
+                  {filteredSubjects.length === 0 ? (
+                    <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md text-center">
+                      No subjects found for this dept.
+                    </p>
+                  ) : (
+                    filteredSubjects.map((sub) => (
+                      <label
+                        key={sub.subject_id}
+                        className="flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          checked={form.subjectsAssigned.includes(
+                            sub.subject_code,
+                          )}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setForm({
+                                ...form,
+                                subjectsAssigned: [
+                                  ...form.subjectsAssigned,
+                                  sub.subject_code,
+                                ],
+                              });
+                            } else {
+                              setForm({
+                                ...form,
+                                subjectsAssigned: form.subjectsAssigned.filter(
+                                  (x) => x !== sub.subject_code,
+                                ),
+                              });
+                            }
+                          }}
+                        />
+                        <span className="font-medium">
+                          {sub.subject_code}{" "}
+                          <span className="text-muted-foreground font-normal ml-1">
+                            - {sub.subject_name}
+                          </span>
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Assigned Class</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {classOptions.map((c) => (
-                  <label key={c} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
-                    <input
-                      type="checkbox"
-                      checked={form.assignedClass.includes(c)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setForm({ ...form, assignedClass: [...form.assignedClass, c] });
-                        } else {
-                          setForm({ ...form, assignedClass: form.assignedClass.filter((x) => x !== c) });
-                        }
-                      }}
-                      className="rounded"
-                    />
-                    <span>{c}</span>
-                  </label>
-                ))}
+
+              <div className="space-y-3">
+                <Label>Assigned Class</Label>
+                <div className="grid gap-2 max-h-40 overflow-y-auto p-1">
+                  {filteredClasses.length === 0 ? (
+                    <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md text-center">
+                      No classes found for this dept.
+                    </p>
+                  ) : (
+                    filteredClasses.map((c) => (
+                      <label
+                        key={c.class_id}
+                        className="flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          checked={form.assignedClass.includes(c.class_name)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setForm({
+                                ...form,
+                                assignedClass: [
+                                  ...form.assignedClass,
+                                  c.class_name,
+                                ],
+                              });
+                            } else {
+                              setForm({
+                                ...form,
+                                assignedClass: form.assignedClass.filter(
+                                  (x) => x !== c.class_name,
+                                ),
+                              });
+                            }
+                          }}
+                        />
+                        <span className="font-medium">{c.class_name}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button onClick={handleAdd} disabled={!form.name || !form.email}>Add Teacher</Button>
+
+          <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-400"
+              onClick={() => setShowAdd(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              className="w-full sm:w-auto"
+              onClick={handleAdd}
+              disabled={
+                !form.name || !form.email || form.dept === "Select Dept"
+              }
+            >
+              Add Teacher
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Teacher Dialog */}
+      {/* EDIT DIALOG */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle>Edit Teacher</DialogTitle>
-            <DialogDescription>Update teacher details.</DialogDescription>
+            <DialogTitle className="text-xl">Edit Teacher</DialogTitle>
+            <DialogDescription>
+              Update details for {editTeacher?.name}.
+            </DialogDescription>
           </DialogHeader>
+
           {editTeacher && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Full Name</Label><Input value={editTeacher.name} onChange={(e) => setEditTeacher({ ...editTeacher, name: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Email</Label><Input value={editTeacher.email} onChange={(e) => setEditTeacher({ ...editTeacher, email: e.target.value })} /></div>
+            <div className="space-y-5 mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Full Name</Label>
+                  <Input
+                    value={editTeacher.name}
+                    onChange={(e) =>
+                      setEditTeacher({ ...editTeacher, name: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={editTeacher.email}
+                    onChange={(e) =>
+                      setEditTeacher({ ...editTeacher, email: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Teacher ID</Label>
+                  <Input value={editTeacher.id} disabled className="bg-muted" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input
+                    value={editTeacher.phone}
+                    onChange={(e) =>
+                      setEditTeacher({ ...editTeacher, phone: e.target.value })
+                    }
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-2">
                   <Label>Department</Label>
-                  <Select value={editTeacher.dept} onValueChange={(v) => setEditTeacher({ ...editTeacher, dept: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+
+                  <Select
+                    value={editTeacher.dept}
+                    onValueChange={(v) => {
+                      setEditTeacher({
+                        ...editTeacher,
+                        dept: v,
+                        subjectsAssigned: [],
+                        assignedClass: [],
+                      });
+
+                      fetchSubjectsAndClassesBySchool(v);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+
                     <SelectContent>
-                      <SelectItem value="CSE">CSE</SelectItem>
-                      <SelectItem value="ECE">ECE</SelectItem>
-                      <SelectItem value="ME">ME</SelectItem>
-                      <SelectItem value="CE">CE</SelectItem>
+                      {departments.map((d: any) => (
+                        <SelectItem
+                          key={d.department_id}
+                          value={d.department_name}
+                        >
+                          {d.department_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-2">
                   <Label>Designation</Label>
-                  <Select value={editTeacher.designation} onValueChange={(v) => setEditTeacher({ ...editTeacher, designation: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select
+                    value={editTeacher.designation}
+                    onValueChange={(v) =>
+                      setEditTeacher({ ...editTeacher, designation: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Professor">Professor</SelectItem>
-                      <SelectItem value="Associate Prof">Associate Prof</SelectItem>
-                      <SelectItem value="Assistant Prof">Assistant Prof</SelectItem>
+                      <SelectItem value="Associate Prof">
+                        Associate Prof
+                      </SelectItem>
+                      <SelectItem value="Assistant Prof">
+                        Assistant Prof
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Phone</Label><Input value={editTeacher.phone} onChange={(e) => setEditTeacher({ ...editTeacher, phone: e.target.value })} /></div>
               </div>
-              <div className="space-y-2">
-                <Label>Subjects Assigned</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {initialSubjects.map((sub) => (
-                    <label key={sub.code} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
-                      <input
-                        type="checkbox"
-                        checked={editTeacher.subjectsAssigned?.includes(sub.code) || false}
-                        onChange={(e) => {
-                          const current = editTeacher.subjectsAssigned || [];
-                          if (e.target.checked) {
-                            setEditTeacher({ ...editTeacher, subjectsAssigned: [...current, sub.code] });
-                          } else {
-                            setEditTeacher({ ...editTeacher, subjectsAssigned: current.filter((c: string) => c !== sub.code) });
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div className="space-y-3">
+                  <Label>Subjects Assigned</Label>
+                  <div className="grid gap-2 max-h-40 overflow-y-auto p-1">
+                    {filteredSubjects.map((sub) => (
+                      <label
+                        key={sub.subject_id}
+                        className="flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border hover:bg-gray-200 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          checked={
+                            editTeacher.subjectsAssigned?.includes(
+                              sub.subject_code,
+                            ) || false
                           }
-                        }}
-                        className="rounded"
-                      />
-                      <span>{sub.code} - {sub.name}</span>
-                    </label>
-                  ))}
+                          onChange={(e) => {
+                            const current = editTeacher.subjectsAssigned || [];
+
+                            if (e.target.checked) {
+                              setEditTeacher({
+                                ...editTeacher,
+                                subjectsAssigned: [
+                                  ...current,
+                                  sub.subject_code,
+                                ],
+                              });
+                            } else {
+                              setEditTeacher({
+                                ...editTeacher,
+                                subjectsAssigned: current.filter(
+                                  (x) => x !== sub.subject_code,
+                                ),
+                              });
+                            }
+                          }}
+                        />
+                        <span className="font-medium">
+                          {sub.subject_code}{" "}
+                          <span className="text-muted-foreground font-normal ml-1">
+                            - {sub.subject_name}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Assigned Class</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {classOptions.map((c) => (
-                    <label key={c} className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md border border-border hover:bg-accent/50">
-                      <input
-                        type="checkbox"
-                        checked={editTeacher.assignedClass?.includes(c) || false}
-                        onChange={(e) => {
-                          const current = editTeacher.assignedClass || [];
-                          if (e.target.checked) {
-                            setEditTeacher({ ...editTeacher, assignedClass: [...current, c] });
-                          } else {
-                            setEditTeacher({ ...editTeacher, assignedClass: current.filter((x: string) => x !== c) });
+
+                <div className="space-y-3">
+                  <Label>Assigned Class</Label>
+                  <div className="grid gap-2 max-h-40 overflow-y-auto p-1">
+                    {filteredClasses.map((c) => (
+                      <label
+                        key={c.class_id}
+                        className="flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border hover:bg-gray-200 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          checked={
+                            editTeacher.assignedClass?.includes(c.class_name) ||
+                            false
                           }
-                        }}
-                        className="rounded"
-                      />
-                      <span>{c}</span>
-                    </label>
-                  ))}
+                          onChange={(e) => {
+                            const current = editTeacher.assignedClass || [];
+
+                            if (e.target.checked) {
+                              setEditTeacher({
+                                ...editTeacher,
+                                assignedClass: [...current, c.class_name],
+                              });
+                            } else {
+                              setEditTeacher({
+                                ...editTeacher,
+                                assignedClass: current.filter(
+                                  (x) => x !== c.class_name,
+                                ),
+                              });
+                            }
+                          }}
+                        />
+                        <span className="font-medium">{c.class_name}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEdit(false)}>Cancel</Button>
-            <Button onClick={handleEdit}>Save Changes</Button>
+
+          <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-400"
+              onClick={() => setShowEdit(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button className="w-full sm:w-auto" onClick={handleEdit}>
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      {/* DELETE DIALOG */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remove Teacher</DialogTitle>
-            <DialogDescription>Are you sure you want to remove {deleteTeacher?.name}? This action cannot be undone.</DialogDescription>
+        <DialogContent className="w-[95vw] sm:max-w-[400px] rounded-2xl p-6">
+          <DialogHeader className="items-center text-center">
+            <div className="h-12 w-12 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-2">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-xl">Remove Teacher</DialogTitle>
+            <DialogDescription className="pt-2 text-sm">
+              Are you sure you want to remove{" "}
+              <b className="text-foreground">{deleteTeacher?.name}</b>? This
+              action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDelete(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Remove</Button>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-center gap-3 mt-4">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowDelete(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto"
+              onClick={handleDelete}
+            >
+              Remove Teacher
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
 // ---- Subjects Page ----
+const DEPARTMENT_OPTIONS = [
+  { id: "CSE", name: "CSE" },
+  { id: "ECE", name: "ECE" },
+  { id: "ME", name: "ME" },
+  { id: "IT", name: "IT" },
+];
+
+const SEMESTER_OPTIONS = [
+  "1st",
+  "2nd",
+  "3rd",
+  "4th",
+  "5th",
+  "6th",
+  "7th",
+  "8th",
+];
+
 function SubjectsPage() {
   const { toast } = useToast();
-  const [subjectsList, setSubjectsList] = useState(initialSubjects);
+  const [subjectsList, setSubjectsList] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [editSubject, setEditSubject] = useState<typeof initialSubjects[0] | null>(null);
-  const [form, setForm] = useState({ code: "", name: "", dept: "CSE", teacher: "", semester: "1st", credits: 3 });
+  const [showDelete, setShowDelete] = useState(false);
+  const [editSubject, setEditSubject] = useState(null);
+  const [deleteSubject, setDeleteSubject] = useState(null);
 
-  const handleAdd = () => {
-    const newSubject = { ...form, students: 0 };
-    setSubjectsList([...subjectsList, newSubject]);
-    setShowAdd(false);
-    setForm({ code: "", name: "", dept: "CSE", teacher: "", semester: "1st", credits: 3 });
-    toast({ title: "Subject Added", description: `${form.name} (${form.code}) has been created.` });
+  const [form, setForm] = useState({
+    code: "",
+    name: "",
+    departments: [],
+    semester: "1st",
+    credits: 3,
+  });
+
+  const API = "http://localhost:5000/api/subjects";
+
+  // --- API Handlers (Untouched) ---
+  const handleAdd = async () => {
+    try {
+      const res = await authFetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(form),
+      });
+      if (!res) return;
+
+      if (!res.ok) throw new Error("Failed to add subject");
+      const data = await res.json();
+
+      toast({
+        title: "Subject Added",
+        description: `${form.name} (${form.code}) has been created.`,
+      });
+
+      setShowAdd(false);
+      setForm({
+        code: "",
+        name: "",
+        departments: [],
+        semester: "1st",
+        credits: 3,
+      });
+      fetchSubjects();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleEdit = () => {
-    if (!editSubject) return;
-    setSubjectsList(subjectsList.map((s) => (s.code === editSubject.code ? editSubject : s)));
+  const handleEdit = async () => {
+    const payload = {
+      code: editSubject.code,
+      name: editSubject.name,
+      semester: editSubject.semester,
+      credits: editSubject.credits,
+      departments: editSubject.department_ids || [],
+    };
+
+    const res = await authFetch(`${API}/${editSubject.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res) return;
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast({
+        title: "Error",
+        description: data.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Updated",
+      description: "Subject updated successfully",
+    });
+
     setShowEdit(false);
-    toast({ title: "Subject Updated", description: `${editSubject.name} has been updated.` });
+    fetchSubjects();
   };
+
+  const handleDelete = async () => {
+    if (!deleteSubject) return;
+    try {
+      const res = await authFetch(`${API}/${deleteSubject.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res) return;
+      if (!res.ok) throw new Error("Failed to delete subject");
+
+      toast({
+        title: "Subject Removed",
+        description: `${deleteSubject.name} has been removed from the system.`,
+      });
+
+      setShowDelete(false);
+      fetchSubjects();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const res = await authFetch(API, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res) return;
+      const data = await res.json();
+      setSubjectsList(data);
+    } catch (error) {
+      console.error("Failed to fetch subjects:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Subjects" value={subjectsList.length} icon={<BookOpen className="w-5 h-5" />} />
-        <StatCard title="CSE Subjects" value={subjectsList.filter(s => s.dept === "CSE").length} icon={<BookOpen className="w-5 h-5" />} variant="accent" />
-        <StatCard title="Total Credits" value={subjectsList.reduce((a, s) => a + s.credits, 0)} icon={<BarChart3 className="w-5 h-5" />} />
-        <StatCard title="Avg Students" value={Math.round(subjectsList.reduce((a, s) => a + s.students, 0) / subjectsList.length)} icon={<Users className="w-5 h-5" />} variant="success" />
-      </div>
-
-      <Card className="shadow-card">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-sans font-semibold">Manage Subjects</CardTitle>
-          <Button size="sm" onClick={() => setShowAdd(true)}>+ Add Subject</Button>
+      <Card className="border-none shadow-md bg-card/50">
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <CardTitle className="text-xl font-bold tracking-tight">
+            Manage Subjects
+          </CardTitle>
+          <Button
+            onClick={() => setShowAdd(true)}
+            className="w-full md:w-auto shadow-sm"
+          >
+            <Plus className="w-4 h-4 mr-2" /> Add Subject
+          </Button>
         </CardHeader>
+
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Semester</TableHead>
-                <TableHead>Credits</TableHead>
-                
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subjectsList.map((s) => (
-                <TableRow key={s.code}>
-                  <TableCell className="font-mono text-xs">{s.code}</TableCell>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.dept}</TableCell>
-                  <TableCell>{s.semester}</TableCell>
-                  <TableCell>{s.credits}</TableCell>
-                  
-                  
-                  <TableCell>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditSubject({ ...s }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
-                  </TableCell>
+          <div className="rounded-xl border border-border/50 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="w-[100px]">Code</TableHead>
+                  <TableHead className="min-w-[200px]">Subject</TableHead>
+                  <TableHead className="min-w-[150px]">Department</TableHead>
+                  <TableHead>Semester</TableHead>
+                  <TableHead>Credits</TableHead>
+                  <TableHead className="text-right pr-6">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {subjectsList.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-32 text-center text-muted-foreground"
+                    >
+                      No subjects found. Click "Add Subject" to create one.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  subjectsList.map((s) => (
+                    <TableRow
+                      key={s.code}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      <TableCell className="font-mono text-xs font-semibold">
+                        <Badge variant="outline" className="bg-background">
+                          {s.code}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">{s.name}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {s.departments?.length > 0 ? (
+                            s.departments.map((d, i) => (
+                              <Badge
+                                key={i}
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0"
+                              >
+                                {d}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              -
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="text-muted-foreground border-dashed"
+                        >
+                          {s.semester}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                          {s.credits}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right pr-4">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 hover:bg-primary"
+                            onClick={() => {
+                              setEditSubject({
+                                ...s,
+                                department_ids: s.department_ids || [],
+                              });
+                              setShowEdit(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 p-0 text-destructive hover:bg-destructive"
+                            onClick={() => {
+                              setDeleteSubject(s);
+                              setShowDelete(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* Add Subject Dialog */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
-            <DialogTitle>Add New Subject</DialogTitle>
-            <DialogDescription>Create a new subject and assign it to a department.</DialogDescription>
+            <DialogTitle className="text-xl">Add New Subject</DialogTitle>
+            <DialogDescription>
+              Fill out the details below to add a new subject to the curriculum.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Subject Code</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="CS501" /></div>
-              <div className="space-y-2"><Label>Subject Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Machine Learning" /></div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
+
+          <div className="grid gap-6 py-4">
+            {/* Subject Code & Name: Stacks on mobile, side-by-side on desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Department</Label>
-                <Select value={form.dept} onValueChange={(v) => setForm({ ...form, dept: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CSE">CSE</SelectItem>
-                    <SelectItem value="ECE">ECE</SelectItem>
-                    <SelectItem value="ME">ME</SelectItem>
-                    <SelectItem value="CE">CE</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="code">Subject Code</Label>
+                <Input
+                  id="code"
+                  className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                  value={form.code}
+                  onChange={(e) => setForm({ ...form, code: e.target.value })}
+                  placeholder="e.g. CS501"
+                />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Subject Name</Label>
+                <Input
+                  id="name"
+                  className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Machine Learning"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Semester</Label>
-                <Select value={form.semester} onValueChange={(v) => setForm({ ...form, semester: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={form.semester}
+                  onValueChange={(v) => setForm({ ...form, semester: v })}
+                >
+                  <SelectTrigger className="h-10 bg-muted/50">
+                    <SelectValue placeholder="Select Semester" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {SEMESTER_OPTIONS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s} Semester
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label>Credits</Label><Input type="number" value={form.credits} onChange={(e) => setForm({ ...form, credits: Number(e.target.value) })} /></div>
+              <div className="space-y-2">
+                <Label htmlFor="credits">Credits</Label>
+                <Input
+                  id="credits"
+                  type="number"
+                  min="1"
+                  className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                  value={form.credits}
+                  onChange={(e) =>
+                    setForm({ ...form, credits: Number(e.target.value) })
+                  }
+                />
+              </div>
             </div>
-            
+
+            <div className="space-y-3">
+              <Label>Assigned Departments</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {DEPARTMENT_OPTIONS.map((dept) => {
+                  const isSelected = form.departments.includes(dept.id);
+                  return (
+                    <label
+                      key={dept.id}
+                      className={`
+                  cursor-pointer flex items-center justify-center p-3 md:p-2 rounded-md border text-sm font-medium transition-all
+                  ${isSelected ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-background hover:bg-muted text-muted-foreground border-input"}
+                `}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setForm({
+                              ...form,
+                              departments: [...form.departments, dept.id],
+                            });
+                          } else {
+                            setForm({
+                              ...form,
+                              departments: form.departments.filter(
+                                (d) => d !== dept.id,
+                              ),
+                            });
+                          }
+                        }}
+                      />
+                      {dept.name}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button onClick={handleAdd} disabled={!form.code || !form.name}>Add Subject</Button>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-400"
+              onClick={() => setShowAdd(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={handleAdd}
+              disabled={!form.code || !form.name}
+            >
+              Save Subject
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Subject Dialog */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
-            <DialogTitle>Edit Subject</DialogTitle>
-            <DialogDescription>Update subject details.</DialogDescription>
+            <DialogTitle className="text-xl">Edit Subject</DialogTitle>
+            <DialogDescription>
+              Make changes to the subject details below.
+            </DialogDescription>
           </DialogHeader>
+
           {editSubject && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Subject Code</Label><Input value={editSubject.code} disabled /></div>
-                <div className="space-y-2"><Label>Subject Name</Label><Input value={editSubject.name} onChange={(e) => setEditSubject({ ...editSubject, name: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Department</Label>
-                  <Select value={editSubject.dept} onValueChange={(v) => setEditSubject({ ...editSubject, dept: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CSE">CSE</SelectItem>
-                      <SelectItem value="ECE">ECE</SelectItem>
-                      <SelectItem value="ME">ME</SelectItem>
-                      <SelectItem value="CE">CE</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="edit-code">Subject Code</Label>
+                  <Input
+                    id="edit-code"
+                    className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                    value={editSubject.code}
+                    onChange={(e) =>
+                      setEditSubject({ ...editSubject, code: e.target.value })
+                    }
+                  />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Subject Name</Label>
+                  <Input
+                    id="edit-name"
+                    className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                    value={editSubject.name}
+                    onChange={(e) =>
+                      setEditSubject({ ...editSubject, name: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Semester</Label>
-                  <Select value={editSubject.semester} onValueChange={(v) => setEditSubject({ ...editSubject, semester: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select
+                    value={editSubject.semester}
+                    onValueChange={(v) =>
+                      setEditSubject({ ...editSubject, semester: v })
+                    }
+                  >
+                    <SelectTrigger className="h-10 bg-muted/50">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {SEMESTER_OPTIONS.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s} Semester
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Credits</Label><Input type="number" value={editSubject.credits} onChange={(e) => setEditSubject({ ...editSubject, credits: Number(e.target.value) })} /></div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-credits">Credits</Label>
+                  <Input
+                    id="edit-credits"
+                    type="number"
+                    min="1"
+                    className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                    value={editSubject.credits}
+                    onChange={(e) =>
+                      setEditSubject({
+                        ...editSubject,
+                        credits: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
               </div>
-              
+
+              <div className="space-y-3">
+                <Label>Assigned Departments</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {departments.map((dept) => {
+                    const isSelected = editSubject.department_ids?.includes(
+                      dept.id,
+                    );
+                    return (
+                      <label
+                        key={dept.id}
+                        className={`
+                    cursor-pointer flex items-center justify-center p-3 md:p-2 rounded-md border text-sm font-medium transition-all
+                    ${isSelected ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-background hover:bg-muted text-muted-foreground border-input"}
+                  `}
+                      >
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditSubject({
+                                ...editSubject,
+                                department_ids: [
+                                  ...(editSubject.department_ids || []),
+                                  dept.id,
+                                ],
+                              });
+                            } else {
+                              setEditSubject({
+                                ...editSubject,
+                                department_ids: (
+                                  editSubject.department_ids || []
+                                ).filter((d) => d !== dept.id),
+                              });
+                            }
+                          }}
+                        />
+                        {dept.name}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEdit(false)}>Cancel</Button>
-            <Button onClick={handleEdit}>Save Changes</Button>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-red-500 text-white hover:bg-destructive/80"
+              onClick={() => setShowEdit(false)}
+            >
+              Cancel
+            </Button>
+            <Button className="w-full sm:w-auto" onClick={handleEdit}>
+              Update Subject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">
+              Remove Subject
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Are you sure you want to completely remove{" "}
+              <strong>{deleteSubject?.name}</strong>? This action cannot be
+              undone and will remove it from all assigned departments.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button variant="outline" onClick={() => setShowDelete(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Remove
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -882,224 +2578,467 @@ function SubjectsPage() {
   );
 }
 // ---- Classes Page ----
-const initialClasses = [
-  { id: "CLS001", name: "CSE-A", department: "CSE", year: "3rd", semester: "5th", students: 48, classTeacher: "Dr. Sarah Williams" },
-  { id: "CLS002", name: "CSE-B", department: "CSE", year: "3rd", semester: "5th", students: 45, classTeacher: "Prof. John Smith" },
-  { id: "CLS003", name: "ECE-A", department: "ECE", year: "2nd", semester: "3rd", students: 42, classTeacher: "Dr. Lisa Wang" },
-  { id: "CLS004", name: "ECE-B", department: "ECE", year: "2nd", semester: "3rd", students: 40, classTeacher: "—" },
-  { id: "CLS005", name: "ME-A", department: "ME", year: "4th", semester: "7th", students: 50, classTeacher: "Prof. Alan Brown" },
-  { id: "CLS006", name: "ME-B", department: "ME", year: "4th", semester: "7th", students: 38, classTeacher: "—" },
-  { id: "CLS007", name: "CE-A", department: "CE", year: "1st", semester: "1st", students: 44, classTeacher: "Dr. Priya Sharma" },
-  { id: "CLS008", name: "CE-B", department: "CE", year: "1st", semester: "1st", students: 36, classTeacher: "—" },
-];
-
 function ClassesPage() {
   const { toast } = useToast();
-  const [classesList, setClassesList] = useState(initialClasses);
+  const [classesList, setClassesList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [editClass, setEditClass] = useState<typeof initialClasses[0] | null>(null);
-  const [deleteClass, setDeleteClass] = useState<typeof initialClasses[0] | null>(null);
-  const [form, setForm] = useState({ name: "", department: "CSE", school: "School of Computer Sciences" });
   const [search, setSearch] = useState("");
 
-  const filtered = classesList.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.department.toLowerCase().includes(search.toLowerCase()));
+  const API = "http://localhost:5000/api/classes";
 
-  const handleAdd = () => {
-    const newClass = {
-      id: `CLS${String(classesList.length + 20).padStart(3, "0")}`,
-      name: form.name,
-      department: form.department,
-      school: form.school,
-      year: "1st",
-      semester: "1st",
-      students: 0,
-      classTeacher: "—",
-    };
-    setClassesList([...classesList, newClass]);
-    setShowAdd(false);
-    setForm({ name: "", department: "CSE", school: "School of Computer Sciences" });
-    toast({ title: "Class Added", description: `${form.name} has been created successfully.` });
+  const [form, setForm] = useState({
+    name: "",
+    department: "Select Dept",
+    school: "Select School",
+  });
+
+  const [editClass, setEditClass] = useState(null);
+  const [deleteClass, setDeleteClass] = useState(null);
+
+  const fetchClasses = async () => {
+    setIsLoading(true);
+    try {
+      const res = await authFetch(API, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res) return;
+      const data = await res.json();
+      setClassesList(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleEdit = () => {
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const filtered = classesList.filter(
+    (c) =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.department.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const handleAdd = async () => {
+    try {
+      const res = await authFetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(form),
+      });
+      if (!res) return;
+      if (!res.ok) throw new Error("Failed to add class");
+      toast({ title: "Success", description: "Class created successfully." });
+      setShowAdd(false);
+      setForm({ name: "", department: "Select Dept", school: "Select School" });
+      fetchClasses();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Could not add class.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = async () => {
     if (!editClass) return;
-    setClassesList(classesList.map((c) => (c.id === editClass.id ? editClass : c)));
-    setShowEdit(false);
-    toast({ title: "Class Updated", description: `${editClass.name} has been updated.` });
+    try {
+      const res = await authFetch(`${API}/${editClass.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(editClass),
+      });
+      if (!res) return;
+      if (!res.ok) throw new Error("Failed to update");
+      toast({ title: "Updated", description: "Class details saved." });
+      setShowEdit(false);
+      fetchClasses();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Update failed.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteClass) return;
-    setClassesList(classesList.filter((c) => c.id !== deleteClass.id));
-    setShowDelete(false);
-    toast({ title: "Class Removed", description: `${deleteClass.name} has been removed.` });
+    try {
+      const res = await authFetch(`${API}/${deleteClass.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res) return;
+      if (!res.ok) throw new Error();
+      toast({ title: "Removed", description: "Class deleted successfully." });
+      setShowDelete(false);
+      fetchClasses();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Delete failed.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Classes" value={classesList.length} icon={<School className="w-5 h-5" />} />
-        <StatCard title="CSE" value={classesList.filter(c => c.department === "CSE").length} icon={<Building2 className="w-5 h-5" />} variant="accent" />
-        <StatCard title="ECE" value={classesList.filter(c => c.department === "ECE").length} icon={<Building2 className="w-5 h-5" />} />
-        <StatCard title="Total Students" value={classesList.reduce((sum, c) => sum + c.students, 0)} icon={<Users className="w-5 h-5" />} variant="success" />
-      </div>
-
-      <Card className="shadow-card">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-sans font-semibold">Manage Classes</CardTitle>
-          <div className="flex gap-2">
-            <Input placeholder="Search..." className="h-8 w-40 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <Button size="sm" onClick={() => setShowAdd(true)}><UserPlus className="w-4 h-4 mr-1" /> Add Class</Button>
+      <Card className="border-none shadow-md bg-card/50">
+        <CardHeader className="flex lg:flex-row flex-col justify-between space-y-0 pb-7 gap-4">
+          <CardTitle className="text-xl font-bold tracking-tight">
+            Class Directory
+          </CardTitle>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search classes or departments..."
+                className="pl-9 bg-background"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={() => setShowAdd(true)}
+              className="w-full md:w-auto shadow-md"
+            >
+              <UserPlus className="w-4 h-4 mr-2" /> Add New Class
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Class Name</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>School</TableHead>
-                <TableHead>Students</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-mono text-xs">{c.id}</TableCell>
-                  <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{c.department}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{(c as any).school || "—"}</TableCell>
-                  <TableCell>{c.students}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditClass({ ...c }); setShowEdit(true); }}><Edit className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => { setDeleteClass(c); setShowDelete(true); }}><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </TableCell>
+          <div className="rounded-xl border border-border/50 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="w-[250px] pl-6">Class Name</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead className="hidden md:table-cell">School</TableHead>
+                  <TableHead>Total Students</TableHead>
+                  <TableHead className="text-right pr-6">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-32 text-center">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="h-32 text-center text-muted-foreground"
+                    >
+                      No classes found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filtered.map((c) => (
+                    <TableRow
+                      key={c.id}
+                      className="hover:bg-muted/10 transition-colors"
+                    >
+                      <TableCell className="font-semibold pl-6">
+                        {c.name}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className="font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                        >
+                          {c.department}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm hidden md:table-cell">
+                        <div className="flex items-center gap-1.5">
+                          <School className="w-3.5 h-3.5 text-muted-foreground/70" />
+                          {(c as any).school || "Not Assigned"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-semibold text-muted-foreground/70">
+                        {c.total_students || 0}
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 hover:bg-primary hover:text-white"
+                            onClick={() => {
+                              setEditClass({ ...c });
+                              setShowEdit(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 text-destructive hover:bg-destructive hover:text-white"
+                            onClick={() => {
+                              setDeleteClass(c);
+                              setShowDelete(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Add Class Dialog */}
+      {/* Modern Add Dialog */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
-            <DialogTitle>Add New Class</DialogTitle>
-            <DialogDescription>Fill in the details to create a new class.</DialogDescription>
+            <DialogTitle>Create Class</DialogTitle>
+            <DialogDescription>
+              Enter the primary details for the new academic group.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Class Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. CSE-A" /></div>
-              <div className="space-y-2">
+
+          <div className="grid gap-6 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="add-name">Class Name</Label>
+              <Input
+                id="add-name"
+                className="h-10"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. CSE-2024-A"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
                 <Label>Department</Label>
-                <Select value={form.department} onValueChange={(v) => setForm({ ...form, department: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={form.department}
+                  onValueChange={(v) => setForm({ ...form, department: v })}
+                >
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="Select Dept">Select Dept</SelectItem>
                     <SelectItem value="CSE">CSE</SelectItem>
                     <SelectItem value="ECE">ECE</SelectItem>
                     <SelectItem value="ME">ME</SelectItem>
-                    <SelectItem value="CE">CE</SelectItem>
+                    <SelectItem value="IT">IT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>School Affiliation</Label>
+                <Select
+                  value={form.school}
+                  onValueChange={(v) => setForm({ ...form, school: v })}
+                >
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Select School">Select School</SelectItem>
+                    <SelectItem value="School of Computer Sciences">
+                      School of Computer Sciences
+                    </SelectItem>
+                    <SelectItem value="School of Mechanical Sciences">
+                      School of Mechanical Sciences
+                    </SelectItem>
+                    <SelectItem value="School of Infrastructure and Planning">
+                      School of Infrastructure and Planning
+                    </SelectItem>
+                    <SelectItem value="School of Electronic Sciences">
+                      School of Electronic Sciences
+                    </SelectItem>
+                    <SelectItem value="School of Electrical Sciences">
+                      School of Electrical Sciences
+                    </SelectItem>
+                    <SelectItem value="School of Basic Science and Humanities">
+                      School of Basic Science and Humanities
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>School of Sciences</Label>
-              <Select value={form.school} onValueChange={(v) => setForm({ ...form, school: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="School of Computer Sciences">School of Computer Sciences</SelectItem>
-                  <SelectItem value="School of Mechanical Sciences">School of Mechanical Sciences</SelectItem>
-                  <SelectItem value="School of Electrical Sciences">School of Electrical Sciences</SelectItem>
-                  <SelectItem value="School of Civil Sciences">School of Civil Sciences</SelectItem>
-                  <SelectItem value="School of Chemical Sciences">School of Chemical Sciences</SelectItem>
-                  <SelectItem value="School of Biological Sciences">School of Biological Sciences</SelectItem>
-                  <SelectItem value="School of Physical Sciences">School of Physical Sciences</SelectItem>
-                  <SelectItem value="School of Mathematical Sciences">School of Mathematical Sciences</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button onClick={handleAdd} disabled={!form.name}>Add Class</Button>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-400"
+              onClick={() => setShowAdd(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={handleAdd}
+              disabled={!form.name || form.department === "Select Dept"}
+            >
+              Save Class
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Class Dialog */}
+      {/* Modern Edit Dialog */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
-            <DialogTitle>Edit Class</DialogTitle>
-            <DialogDescription>Update class details.</DialogDescription>
+            <DialogTitle>Edit Class Information</DialogTitle>
+            <DialogDescription>
+              Modify settings for this specific class group.
+            </DialogDescription>
           </DialogHeader>
+
           {editClass && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Class Name</Label><Input value={editClass.name} onChange={(e) => setEditClass({ ...editClass, name: e.target.value })} /></div>
-                <div className="space-y-2">
+            <div className="grid gap-6 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">Class Name</Label>
+                <Input
+                  id="edit-name"
+                  className="h-10"
+                  value={editClass.name}
+                  onChange={(e) =>
+                    setEditClass({ ...editClass, name: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
                   <Label>Department</Label>
-                  <Select value={editClass.department} onValueChange={(v) => setEditClass({ ...editClass, department: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select
+                    value={editClass.department}
+                    onValueChange={(v) =>
+                      setEditClass({ ...editClass, department: v })
+                    }
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="CSE">CSE</SelectItem>
                       <SelectItem value="ECE">ECE</SelectItem>
                       <SelectItem value="ME">ME</SelectItem>
-                      <SelectItem value="CE">CE</SelectItem>
+                      <SelectItem value="IT">IT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>School</Label>
+                  <Select
+                    value={
+                      (editClass as any).school || "School of Computer Sciences"
+                    }
+                    onValueChange={(v) =>
+                      setEditClass({ ...editClass, school: v } as any)
+                    }
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Select School">
+                        Select School
+                      </SelectItem>
+                      <SelectItem value="School of Computer Sciences">
+                        School of Computer Sciences
+                      </SelectItem>
+                      <SelectItem value="School of Mechanical Sciences">
+                        School of Mechanical Sciences
+                      </SelectItem>
+                      <SelectItem value="School of Infrastructure and Planning">
+                        School of Infrastructure and Planning
+                      </SelectItem>
+                      <SelectItem value="School of Electronic Sciences">
+                        School of Electronic Sciences
+                      </SelectItem>
+                      <SelectItem value="School of Electrical Sciences">
+                        School of Electrical Sciences
+                      </SelectItem>
+                      <SelectItem value="School of Basic Science and Humanities">
+                        School of Basic Science and Humanities
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>School of Sciences</Label>
-                <Select value={(editClass as any).school || "School of Computer Sciences"} onValueChange={(v) => setEditClass({ ...editClass, school: v } as any)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="School of Computer Sciences">School of Computer Sciences</SelectItem>
-                    <SelectItem value="School of Mechanical Sciences">School of Mechanical Sciences</SelectItem>
-                    <SelectItem value="School of Electrical Sciences">School of Electrical Sciences</SelectItem>
-                    <SelectItem value="School of Civil Sciences">School of Civil Sciences</SelectItem>
-                    <SelectItem value="School of Chemical Sciences">School of Chemical Sciences</SelectItem>
-                    <SelectItem value="School of Biological Sciences">School of Biological Sciences</SelectItem>
-                    <SelectItem value="School of Physical Sciences">School of Physical Sciences</SelectItem>
-                    <SelectItem value="School of Mathematical Sciences">School of Mathematical Sciences</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEdit(false)}>Cancel</Button>
-            <Button onClick={handleEdit}>Save Changes</Button>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+            <Button
+              variant="ghost"
+              className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-400"
+              onClick={() => setShowEdit(false)}
+            >
+              Cancel
+            </Button>
+            <Button className="w-full sm:w-auto" onClick={handleEdit}>
+              Update Details
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Remove Class</DialogTitle>
-            <DialogDescription>Are you sure you want to remove {deleteClass?.name}? This action cannot be undone.</DialogDescription>
+            <DialogTitle className="text-destructive">
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove{" "}
+              <span className="font-bold">{deleteClass?.name}</span>? This will
+              permanently delete the record.
+            </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDelete(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Remove</Button>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowDelete(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto shadow-sm"
+              onClick={handleDelete}
+            >
+              Delete Permanently
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
 
 const AcademicDashboard = () => {
   const location = useLocation();
@@ -1113,7 +3052,12 @@ const AcademicDashboard = () => {
   else content = <AcademicDashboardPage />;
 
   return (
-    <DashboardLayout title="Academic Section" subtitle="Administration Panel" navItems={navItems} role="Admin">
+    <DashboardLayout
+      title="Academic Section"
+      subtitle="Administration Panel"
+      navItems={navItems}
+      role="Admin"
+    >
       {content}
     </DashboardLayout>
   );

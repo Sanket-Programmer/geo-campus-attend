@@ -33,7 +33,7 @@ const StatCard = ({ title, value, subtitle, icon, variant = "default" }: StatCar
           <p className="text-2xl font-bold text-foreground mt-1">{value}</p>
           {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
         </div>
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconVariantStyles[variant]}`}>
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center`}>
           {icon}
         </div>
       </div>
