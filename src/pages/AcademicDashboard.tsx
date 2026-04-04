@@ -63,13 +63,6 @@ const navItems = [
   { title: "Subjects Management", url: "/academic/subjects", icon: BookOpen },
 ];
 
-const departments = [
-  { name: "CSE", students: 320, teachers: 18, avgAttendance: 82, id: 1 },
-  { name: "ECE", students: 240, teachers: 14, avgAttendance: 78, id: 2 },
-  { name: "ME", students: 280, teachers: 16, avgAttendance: 75, id: 3 },
-  { name: "IT", students: 200, teachers: 12, avgAttendance: 80, id: 4 },
-];
-
 // ---- Dashboard Page ----
 const StatCard = ({ title, value, icon, variant }) => {
   const variantStyles = {
@@ -348,12 +341,12 @@ function StudentsPage() {
     regd: "",
     name: "",
     email: "",
-    dept: "Select Dept",
+    dept: "",
     department_id: "",
     class_id: "",
     phone: "",
     password: "",
-    semester: "Select Sem",
+    semester: "",
     subjectsRegistered: [] as string[],
   });
 
@@ -389,12 +382,12 @@ function StudentsPage() {
         regd: "",
         name: "",
         email: "",
-        dept: "Select Dept",
+        dept: "",
         department_id: "",
         class_id: "",
         phone: "",
         password: "",
-        semester: "Select Sem",
+        semester: "",
         subjectsRegistered: [],
       });
       toast({ title: "Success", description: "Student added successfully." });
@@ -512,11 +505,13 @@ function StudentsPage() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (form.dept !== "Select Dept" && form.semester !== "Select Sem") {
-      fetchSubjectsByDept(form.dept, form.semester);
-    }
-  }, [form.dept, form.semester]);
+useEffect(() => {
+  if (form.dept && form.semester) {
+    fetchSubjectsByDept(form.dept, form.semester);
+  } else {
+    setSubjects([]);
+  }
+}, [form.dept, form.semester]);
 
   const filtered = studentsList.filter((s) => {
     const name = s.name?.toLowerCase() || "";
@@ -709,7 +704,7 @@ function StudentsPage() {
                       setForm({
                         ...form,
                         department_id: v,
-                        dept: deptName || "Select Dept",
+                        dept: deptName || "",
                         subjectsRegistered: [],
                       });
                     }}
@@ -741,7 +736,7 @@ function StudentsPage() {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Semester" />
+                      <SelectValue placeholder="Select Semester"/>
                     </SelectTrigger>
                     <SelectContent>
                       {[
@@ -1035,7 +1030,7 @@ function StudentsPage() {
                           </div>
                           <input
                             type="checkbox"
-                            className="w-5 h-5 rounded-full"
+                            className="w-5 h-5 rounded-full accent-primary"
                             checked={editStudent.subjectsRegistered?.includes(
                               sub.subject_code,
                             )}
@@ -1149,8 +1144,8 @@ function TeachersPage() {
     id: "",
     name: "",
     email: "",
-    dept: "Select Dept",
-    designation: "Select Desgn",
+    dept: "",
+    designation: "",
     phone: "",
     password: "",
     subjectsAssigned: [] as string[],
@@ -1230,8 +1225,8 @@ function TeachersPage() {
         id: "",
         name: "",
         email: "",
-        dept: "Select Dept",
-        designation: "Select Desgn",
+        dept: "",
+        designation: "",
         phone: "",
         password: "",
         subjectsAssigned: [],
@@ -1641,6 +1636,9 @@ function TeachersPage() {
                     <SelectItem value="Assistant Prof">
                       Assistant Prof
                     </SelectItem>
+                    <SelectItem value="Contractual Faculty">
+                      Contractual Faculty
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1658,11 +1656,11 @@ function TeachersPage() {
                     filteredSubjects.map((sub) => (
                       <label
                         key={sub.subject_id}
-                        className="flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                        className={`flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border transition-colors ${form.subjectsAssigned.includes(sub.subject_code) ? "bg-primary/5 border-primary ring-1 ring-primary" : "hover:bg-muted"}`}
                       >
                         <input
                           type="checkbox"
-                          className="w-4 h-4"
+                          className="w-4 h-4 accent-primary"
                           checked={form.subjectsAssigned.includes(
                             sub.subject_code,
                           )}
@@ -1708,11 +1706,11 @@ function TeachersPage() {
                     filteredClasses.map((c) => (
                       <label
                         key={c.class_id}
-                        className="flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                        className={`flex items-center gap-3 text-sm cursor-pointer p-2.5 rounded-lg border border-border transition-colors ${form.assignedClass.includes(c.class_name) ? "bg-primary/5 border-primary ring-1 ring-primary" : "hover:bg-muted"}`}
                       >
                         <input
                           type="checkbox"
-                          className="w-4 h-4"
+                          className="w-4 h-4 accent-primary"
                           checked={form.assignedClass.includes(c.class_name)}
                           onChange={(e) => {
                             if (e.target.checked) {
@@ -1867,6 +1865,9 @@ function TeachersPage() {
                       <SelectItem value="Assistant Prof">
                         Assistant Prof
                       </SelectItem>
+                      <SelectItem value="Contractual Faculty">
+                        Contractual Faculty
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1883,7 +1884,7 @@ function TeachersPage() {
                       >
                         <input
                           type="checkbox"
-                          className="w-4 h-4"
+                          className="w-4 h-4 accent-primary"
                           checked={
                             editTeacher.subjectsAssigned?.includes(
                               sub.subject_code,
@@ -1931,7 +1932,7 @@ function TeachersPage() {
                       >
                         <input
                           type="checkbox"
-                          className="w-4 h-4"
+                          className="w-4 h-4 accent-primary"
                           checked={
                             editTeacher.assignedClass?.includes(c.class_name) ||
                             false
@@ -2017,13 +2018,6 @@ function TeachersPage() {
   );
 }
 // ---- Subjects Page ----
-const DEPARTMENT_OPTIONS = [
-  { id: "CSE", name: "CSE" },
-  { id: "ECE", name: "ECE" },
-  { id: "ME", name: "ME" },
-  { id: "IT", name: "IT" },
-];
-
 const SEMESTER_OPTIONS = [
   "1st",
   "2nd",
@@ -2043,12 +2037,13 @@ function SubjectsPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [editSubject, setEditSubject] = useState(null);
   const [deleteSubject, setDeleteSubject] = useState(null);
+  const [departments, setDepartments] = useState([]);
 
   const [form, setForm] = useState({
     code: "",
     name: "",
     departments: [],
-    semester: "1st",
+    semester: "",
     credits: 3,
   });
 
@@ -2080,7 +2075,7 @@ function SubjectsPage() {
         code: "",
         name: "",
         departments: [],
-        semester: "1st",
+        semester: "",
         credits: 3,
       });
       fetchSubjects();
@@ -2162,8 +2157,34 @@ function SubjectsPage() {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      const res = await authFetch(
+        "http://localhost:5000/api/departments/details",
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+
+      if (!res) return;
+
+      const data = await res.json();
+
+      const formatted = data.map((d) => ({
+        id: String(d.department_id),
+        name: d.department_name,
+      }));
+
+      setDepartments(formatted);
+    } catch (err) {
+      console.log("Error fetching departments:", err);
+      setDepartments([]);
+    }
+  };
+
   useEffect(() => {
     fetchSubjects();
+    fetchDepartments();
   }, []);
 
   return (
@@ -2303,7 +2324,7 @@ function SubjectsPage() {
                 <Label htmlFor="code">Subject Code</Label>
                 <Input
                   id="code"
-                  className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                  className="h-10 focus:bg-background transition-colors"
                   value={form.code}
                   onChange={(e) => setForm({ ...form, code: e.target.value })}
                   placeholder="e.g. CS501"
@@ -2313,7 +2334,7 @@ function SubjectsPage() {
                 <Label htmlFor="name">Subject Name</Label>
                 <Input
                   id="name"
-                  className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                  className="h-10 focus:bg-background transition-colors"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="e.g. Machine Learning"
@@ -2328,7 +2349,7 @@ function SubjectsPage() {
                   value={form.semester}
                   onValueChange={(v) => setForm({ ...form, semester: v })}
                 >
-                  <SelectTrigger className="h-10 bg-muted/50">
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select Semester" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2346,7 +2367,7 @@ function SubjectsPage() {
                   id="credits"
                   type="number"
                   min="1"
-                  className="h-10 bg-muted/50 focus:bg-background transition-colors"
+                  className="h-10 focus:bg-background transition-colors"
                   value={form.credits}
                   onChange={(e) =>
                     setForm({ ...form, credits: Number(e.target.value) })
@@ -2358,15 +2379,20 @@ function SubjectsPage() {
             <div className="space-y-3">
               <Label>Assigned Departments</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {DEPARTMENT_OPTIONS.map((dept) => {
+                {departments.map((dept) => {
                   const isSelected = form.departments.includes(dept.id);
+
                   return (
                     <label
                       key={dept.id}
                       className={`
-                  cursor-pointer flex items-center justify-center p-3 md:p-2 rounded-md border text-sm font-medium transition-all
-                  ${isSelected ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-background hover:bg-muted text-muted-foreground border-input"}
-                `}
+        cursor-pointer flex items-center justify-center p-3 md:p-2 rounded-md border text-sm font-medium transition-all
+        ${
+          isSelected
+            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+            : "bg-background hover:bg-muted text-muted-foreground border-input"
+        }
+      `}
                     >
                       <input
                         type="checkbox"
@@ -2495,16 +2521,23 @@ function SubjectsPage() {
                 <Label>Assigned Departments</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {departments.map((dept) => {
-                    const isSelected = editSubject.department_ids?.includes(
-                      dept.id,
-                    );
+                    const deptId = String(dept.id);
+
+                    const isSelected = (editSubject.department_ids || [])
+                      .map(String)
+                      .includes(deptId);
+
                     return (
                       <label
-                        key={dept.id}
+                        key={deptId}
                         className={`
-                    cursor-pointer flex items-center justify-center p-3 md:p-2 rounded-md border text-sm font-medium transition-all
-                    ${isSelected ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-background hover:bg-muted text-muted-foreground border-input"}
-                  `}
+        cursor-pointer flex items-center justify-center p-3 md:p-2 rounded-md border text-sm font-medium transition-all
+        ${
+          isSelected
+            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+            : "bg-background hover:bg-muted text-muted-foreground border-input"
+        }
+      `}
                       >
                         <input
                           type="checkbox"
@@ -2516,7 +2549,7 @@ function SubjectsPage() {
                                 ...editSubject,
                                 department_ids: [
                                   ...(editSubject.department_ids || []),
-                                  dept.id,
+                                  deptId,
                                 ],
                               });
                             } else {
@@ -2524,7 +2557,7 @@ function SubjectsPage() {
                                 ...editSubject,
                                 department_ids: (
                                   editSubject.department_ids || []
-                                ).filter((d) => d !== dept.id),
+                                ).filter((d) => String(d) !== deptId),
                               });
                             }
                           }}
@@ -2577,68 +2610,150 @@ function SubjectsPage() {
     </div>
   );
 }
+
 // ---- Classes Page ----
+interface Department {
+  department_id: number;
+  department_name: string;
+}
+
+interface ClassRecord {
+  id: string;
+  name: string;
+  department_id: number;
+  department: string;
+  school: string;
+  total_students?: number;
+}
+
 function ClassesPage() {
   const { toast } = useToast();
-  const [classesList, setClassesList] = useState([]);
+
+  const [classesList, setClassesList] = useState<ClassRecord[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [search, setSearch] = useState("");
 
-  const API = "http://localhost:5000/api/classes";
+  const [search, setSearch] = useState("");
 
   const [form, setForm] = useState({
     name: "",
-    department: "Select Dept",
-    school: "Select School",
+    department_id: "",
+    school: "",
   });
 
-  const [editClass, setEditClass] = useState(null);
-  const [deleteClass, setDeleteClass] = useState(null);
+  const [editClass, setEditClass] = useState<any>(null);
+  const [deleteClass, setDeleteClass] = useState<any>(null);
 
+  const API = "http://localhost:5000/api/classes";
+
+  // ---------------- FETCH DEPARTMENTS ----------------
+  const fetchDepartments = async () => {
+    try {
+      const res = await authFetch(
+        "http://localhost:5000/api/departments/details",
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+
+      if (!res) return;
+
+      const data = await res.json();
+      setDepartments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.log("Error fetching departments:", err);
+      setDepartments([]);
+    }
+  };
+
+  // ---------------- FETCH CLASSES ----------------
   const fetchClasses = async () => {
     setIsLoading(true);
     try {
       const res = await authFetch(API, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+
       if (!res) return;
+
       const data = await res.json();
-      setClassesList(data);
+      setClassesList(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setClassesList([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    fetchDepartments();
     fetchClasses();
   }, []);
 
+  // ---------------- FILTER ----------------
   const filtered = classesList.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.department.toLowerCase().includes(search.toLowerCase()),
+      c.department?.toLowerCase().includes(search.toLowerCase()),
   );
 
+  // ---------------- ADD CLASS ----------------
   const handleAdd = async () => {
     try {
+      if (!form.name || !form.department_id) {
+        toast({
+          title: "Missing Fields",
+          description: "Class name and department are required.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const payload = {
+        name: form.name,
+        department_id: Number(form.department_id),
+        school: form.school,
+      };
+
       const res = await authFetch(API, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
+
       if (!res) return;
-      if (!res.ok) throw new Error("Failed to add class");
-      toast({ title: "Success", description: "Class created successfully." });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to add class",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Class created successfully.",
+      });
+
       setShowAdd(false);
-      setForm({ name: "", department: "Select Dept", school: "Select School" });
+      setForm({
+        name: "",
+        department_id: "",
+        school: "",
+      });
+
       fetchClasses();
     } catch (err) {
       toast({
@@ -2649,20 +2764,41 @@ function ClassesPage() {
     }
   };
 
+  // ---------------- EDIT CLASS ----------------
   const handleEdit = async () => {
     if (!editClass) return;
+
     try {
+      const payload = {
+        name: editClass.name,
+        department_id: Number(editClass.department_id),
+        school: editClass.school,
+      };
+
       const res = await authFetch(`${API}/${editClass.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(editClass),
+        body: JSON.stringify(payload),
       });
+
       if (!res) return;
-      if (!res.ok) throw new Error("Failed to update");
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast({
+          title: "Error",
+          description: data.message || "Update failed",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({ title: "Updated", description: "Class details saved." });
+
       setShowEdit(false);
       fetchClasses();
     } catch (err) {
@@ -2674,16 +2810,31 @@ function ClassesPage() {
     }
   };
 
+  // ---------------- DELETE CLASS ----------------
   const handleDelete = async () => {
     if (!deleteClass) return;
+
     try {
       const res = await authFetch(`${API}/${deleteClass.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+
       if (!res) return;
-      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast({
+          title: "Error",
+          description: data.message || "Delete failed",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({ title: "Removed", description: "Class deleted successfully." });
+
       setShowDelete(false);
       fetchClasses();
     } catch (err) {
@@ -2702,6 +2853,7 @@ function ClassesPage() {
           <CardTitle className="text-xl font-bold tracking-tight">
             Class Directory
           </CardTitle>
+
           <div className="flex flex-wrap items-center gap-4">
             <div className="relative w-full md:w-auto">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -2712,6 +2864,7 @@ function ClassesPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
+
             <Button
               onClick={() => setShowAdd(true)}
               className="w-full md:w-auto shadow-md"
@@ -2720,6 +2873,7 @@ function ClassesPage() {
             </Button>
           </div>
         </CardHeader>
+
         <CardContent>
           <div className="rounded-xl border border-border/50 overflow-hidden">
             <Table>
@@ -2732,6 +2886,7 @@ function ClassesPage() {
                   <TableHead className="text-right pr-6">Actions</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {isLoading ? (
                   <TableRow>
@@ -2742,7 +2897,7 @@ function ClassesPage() {
                 ) : filtered.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={4}
+                      colSpan={5}
                       className="h-32 text-center text-muted-foreground"
                     >
                       No classes found.
@@ -2757,6 +2912,7 @@ function ClassesPage() {
                       <TableCell className="font-semibold pl-6">
                         {c.name}
                       </TableCell>
+
                       <TableCell>
                         <Badge
                           variant="secondary"
@@ -2765,15 +2921,18 @@ function ClassesPage() {
                           {c.department}
                         </Badge>
                       </TableCell>
+
                       <TableCell className="text-muted-foreground text-sm hidden md:table-cell">
                         <div className="flex items-center gap-1.5">
                           <School className="w-3.5 h-3.5 text-muted-foreground/70" />
-                          {(c as any).school || "Not Assigned"}
+                          {c.school || "Not Assigned"}
                         </div>
                       </TableCell>
+
                       <TableCell className="font-semibold text-muted-foreground/70">
                         {c.total_students || 0}
                       </TableCell>
+
                       <TableCell className="text-right pr-6">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -2781,12 +2940,16 @@ function ClassesPage() {
                             variant="outline"
                             className="h-8 w-8 hover:bg-primary hover:text-white"
                             onClick={() => {
-                              setEditClass({ ...c });
+                              setEditClass({
+                                ...c,
+                                department_id: c.department_id,
+                              });
                               setShowEdit(true);
                             }}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
+
                           <Button
                             size="icon"
                             variant="outline"
@@ -2809,7 +2972,7 @@ function ClassesPage() {
         </CardContent>
       </Card>
 
-      {/* Modern Add Dialog */}
+      {/* ---------------- ADD DIALOG ---------------- */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
@@ -2835,18 +2998,22 @@ function ClassesPage() {
               <div className="grid gap-2">
                 <Label>Department</Label>
                 <Select
-                  value={form.department}
-                  onValueChange={(v) => setForm({ ...form, department: v })}
+                  value={form.department_id}
+                  onValueChange={(v) => setForm({ ...form, department_id: v })}
                 >
                   <SelectTrigger className="w-full h-10">
-                    <SelectValue />
+                    <SelectValue placeholder="Select Dept" />
                   </SelectTrigger>
+
                   <SelectContent>
-                    <SelectItem value="Select Dept">Select Dept</SelectItem>
-                    <SelectItem value="CSE">CSE</SelectItem>
-                    <SelectItem value="ECE">ECE</SelectItem>
-                    <SelectItem value="ME">ME</SelectItem>
-                    <SelectItem value="IT">IT</SelectItem>
+                    {departments.map((d) => (
+                      <SelectItem
+                        key={d.department_id}
+                        value={String(d.department_id)}
+                      >
+                        {d.department_name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -2858,10 +3025,9 @@ function ClassesPage() {
                   onValueChange={(v) => setForm({ ...form, school: v })}
                 >
                   <SelectTrigger className="w-full h-10">
-                    <SelectValue />
+                    <SelectValue placeholder="Select School"/>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Select School">Select School</SelectItem>
                     <SelectItem value="School of Computer Sciences">
                       School of Computer Sciences
                     </SelectItem>
@@ -2885,6 +3051,7 @@ function ClassesPage() {
               </div>
             </div>
           </div>
+
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
             <Button
               variant="outline"
@@ -2893,10 +3060,11 @@ function ClassesPage() {
             >
               Cancel
             </Button>
+
             <Button
               className="w-full sm:w-auto"
               onClick={handleAdd}
-              disabled={!form.name || form.department === "Select Dept"}
+              disabled={!form.name || !form.department_id}
             >
               Save Class
             </Button>
@@ -2904,7 +3072,7 @@ function ClassesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modern Edit Dialog */}
+      {/* ---------------- EDIT DIALOG ---------------- */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
         <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
@@ -2932,19 +3100,24 @@ function ClassesPage() {
                 <div className="grid gap-2">
                   <Label>Department</Label>
                   <Select
-                    value={editClass.department}
+                    value={String(editClass.department_id)}
                     onValueChange={(v) =>
-                      setEditClass({ ...editClass, department: v })
+                      setEditClass({ ...editClass, department_id: Number(v) })
                     }
                   >
                     <SelectTrigger className="h-10">
-                      <SelectValue />
+                      <SelectValue placeholder="Select Department" />
                     </SelectTrigger>
+
                     <SelectContent>
-                      <SelectItem value="CSE">CSE</SelectItem>
-                      <SelectItem value="ECE">ECE</SelectItem>
-                      <SelectItem value="ME">ME</SelectItem>
-                      <SelectItem value="IT">IT</SelectItem>
+                      {departments.map((d) => (
+                        <SelectItem
+                          key={d.department_id}
+                          value={String(d.department_id)}
+                        >
+                          {d.department_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -2952,11 +3125,9 @@ function ClassesPage() {
                 <div className="grid gap-2">
                   <Label>School</Label>
                   <Select
-                    value={
-                      (editClass as any).school || "School of Computer Sciences"
-                    }
+                    value={editClass.school}
                     onValueChange={(v) =>
-                      setEditClass({ ...editClass, school: v } as any)
+                      setEditClass({ ...editClass, school: v })
                     }
                   >
                     <SelectTrigger className="h-10">
@@ -2990,6 +3161,7 @@ function ClassesPage() {
               </div>
             </div>
           )}
+
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
             <Button
               variant="ghost"
@@ -2998,6 +3170,7 @@ function ClassesPage() {
             >
               Cancel
             </Button>
+
             <Button className="w-full sm:w-auto" onClick={handleEdit}>
               Update Details
             </Button>
@@ -3005,7 +3178,7 @@ function ClassesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      {/* ---------------- DELETE DIALOG ---------------- */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
@@ -3018,6 +3191,7 @@ function ClassesPage() {
               permanently delete the record.
             </DialogDescription>
           </DialogHeader>
+
           <DialogFooter className="mt-4">
             <Button
               variant="outline"
@@ -3026,6 +3200,7 @@ function ClassesPage() {
             >
               Cancel
             </Button>
+
             <Button
               variant="destructive"
               className="w-full sm:w-auto shadow-sm"

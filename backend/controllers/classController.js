@@ -2,19 +2,15 @@ import pool from "../config/db.js";
 
 export const addClass = async (req, res) => {
   try {
-    const { name, department, school } = req.body;
+    const { name, department_id, school } = req.body;
 
     const result = await pool.query(
       `
       INSERT INTO classes (class_name, department_id, school_name)
-      VALUES (
-        $1,
-        (SELECT department_id FROM departments WHERE department_name=$2),
-        $3
-      )
+      VALUES ($1, $2, $3)
       RETURNING *
       `,
-      [name, department, school],
+      [name, department_id, school],
     );
 
     res.status(201).json({
@@ -29,23 +25,19 @@ export const addClass = async (req, res) => {
 export const updateClass = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, department, school } = req.body;
+    const { name, department_id, school } = req.body;
 
     const result = await pool.query(
       `
       UPDATE classes
       SET
         class_name = $1,
-        department_id = (
-          SELECT department_id
-          FROM departments
-          WHERE department_name=$2
-        ),
+        department_id = $2,
         school_name = $3
       WHERE class_id = $4
       RETURNING *
       `,
-      [name, department, school, id],
+      [name, department_id, school, id],
     );
 
     if (result.rowCount === 0) {
@@ -92,6 +84,7 @@ export const getClasses = async (req, res) => {
       SELECT 
         c.class_id AS id,
         c.class_name AS name,
+        c.department_id,
         d.department_name AS department,
         c.school_name AS school,
 
@@ -101,7 +94,7 @@ export const getClasses = async (req, res) => {
       LEFT JOIN departments d ON d.department_id = c.department_id
       LEFT JOIN students st ON st.class_id = c.class_id
 
-      GROUP BY c.class_id, c.class_name, d.department_name, c.school_name
+      GROUP BY c.class_id, c.class_name,d.department_id, d.department_name, c.school_name
       ORDER BY c.class_name ASC
     `);
 

@@ -27,10 +27,15 @@ export const getSubjects = async (req, res) => {
 };
 
 export const addSubject = async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const { code, name, semester, credits, departments } = req.body;
+
+    await client.query("BEGIN");
+
     // 1. Insert subject
-    const subjectResult = await pool.query(
+    const subjectResult = await client.query(
       `INSERT INTO subjects (subject_code, subject_name, semester, credits)
        VALUES ($1, $2, $3, $4)
        RETURNING subject_id`,
@@ -39,21 +44,25 @@ export const addSubject = async (req, res) => {
 
     const subjectId = subjectResult.rows[0].subject_id;
 
-    // 2. Insert department mappings
-    for (let dept of departments) {
-      await pool.query(
+    // 2. Insert department mappings (IDs directly)
+    if (departments && departments.length > 0) {
+      const values = departments.map((_, i) => `($1, $${i + 2})`).join(",");
+
+      await client.query(
         `INSERT INTO subject_departments (subject_id, department_id)
-         VALUES (
-           $1,
-           (SELECT department_id FROM departments WHERE department_name=$2)
-         )`,
-        [subjectId, dept],
+         VALUES ${values}`,
+        [subjectId, ...departments.map(Number)],
       );
     }
 
+    await client.query("COMMIT");
+
     res.status(201).json({ message: "Subject added successfully" });
   } catch (err) {
+    await client.query("ROLLBACK");
     res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
   }
 };
 
