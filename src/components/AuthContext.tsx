@@ -13,7 +13,7 @@ type AuthContextType = {
   logout: () => void;
 };
 
-const url = "http://localhost:5000";
+const url = "https://geo-campus.onrender.com";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
