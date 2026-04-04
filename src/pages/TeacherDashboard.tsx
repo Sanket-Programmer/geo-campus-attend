@@ -84,7 +84,7 @@ const navItems = [
   { title: "Attendance Console", url: "/teacher/console", icon: PlayCircle },
 ];
 
-const url = "http://localhost:5000";
+const url = "https://geo-campus.onrender.com";
 
 function TeacherDashboardPage({
   fetchSessions,
