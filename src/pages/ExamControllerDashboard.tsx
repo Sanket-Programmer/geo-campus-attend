@@ -46,7 +46,7 @@ const navItems = [
   { title: "Reports", url: "/exam-controller/reports", icon: FileText },
 ];
 
-const yrl = "http://localhost:5000";
+const yrl = "https://geo-campus.onrender.com";
 
 function EligibilityPage() {
   const [search, setSearch] = useState("");
