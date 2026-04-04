@@ -903,7 +903,7 @@ function MarkAttendancePage() {
   useEffect(() => {
     const fetchSession = async () => {
       const token = localStorage.getItem("token");
-      const res = await authFetch("http://localhost:5000/api/attendance/active", {
+      const res = await authFetch(`${url}/api/attendance/active`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (!res) return;
