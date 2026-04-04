@@ -63,7 +63,7 @@ const navItems = [
   { title: "Subjects Management", url: "/academic/subjects", icon: BookOpen },
 ];
 
-const url = "http://localhost:5000";
+const url = "https://geo-campus.onrender.com";
 
 // ---- Dashboard Page ----
 const StatCard = ({ title, value, icon, variant }) => {
