@@ -13,6 +13,8 @@ type AuthContextType = {
   logout: () => void;
 };
 
+const url = "http://localhost:5000";
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -33,7 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
+    const res = await fetch(`${url}/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

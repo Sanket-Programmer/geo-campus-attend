@@ -84,6 +84,8 @@ const navItems = [
   { title: "Attendance Console", url: "/teacher/console", icon: PlayCircle },
 ];
 
+const url = "http://localhost:5000";
+
 function TeacherDashboardPage({
   fetchSessions,
 }: {
@@ -140,34 +142,10 @@ function TeacherDashboardPage({
     (s) => s.status === "present",
   ).length;
 
-  // const handleSubmitGeo = async () => {
-  //   try {
-  //     await fetch(`http://localhost:5000/api/attendance/end/${sessionId}`, {
-  //       method: "PUT",
-  //     });
-
-  //     await fetchSessions();
-
-  //     setSessionActive(false);
-  //     localStorage.removeItem("activeSession");
-  //     toast({
-  //       title: "Geo-Attendance submitted successfully!",
-  //       variant: "default",
-  //     });
-  //   } catch (err) {
-  //     console.error("SUBMIT ERROR:", err);
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to submit attendance.",
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
-
   const handleSubmitGeo = async () => {
   try {
     const res = await authFetch(
-      `http://localhost:5000/api/attendance/end/${sessionId}`,
+      `${url}/api/attendance/end/${sessionId}`,
       {
         method: "PUT",
         headers: {
@@ -215,7 +193,7 @@ function TeacherDashboardPage({
     }));
 
     const res = await authFetch(
-      "http://localhost:5000/api/attendance/mark-manual-bulk",
+      `${url}/api/attendance/mark-manual-bulk`,
       {
         method: "POST",
         headers: {
@@ -283,7 +261,7 @@ function TeacherDashboardPage({
         async (pos) => {
           try {
             const res = await authFetch(
-              "http://localhost:5000/api/attendance/start",
+              `${url}/api/attendance/start`,
               {
                 method: "POST",
                 headers: {
@@ -326,7 +304,7 @@ function TeacherDashboardPage({
       );
     } else {
       try {
-        const res = await authFetch("http://localhost:5000/api/attendance/start", {
+        const res = await authFetch(`${url}/api/attendance/start`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -359,25 +337,11 @@ function TeacherDashboardPage({
     }
   };
 
-  // const endSession = async () => {
-  //   const token = localStorage.getItem("token");
-
-  //   await fetch(`http://localhost:5000/api/attendance/end/${sessionId}`, {
-  //     method: "PUT",
-  //     headers: {
-  //       Authorization: `Bearer ${token}`,
-  //     },
-  //   });
-  //   localStorage.removeItem("activeSession");
-  //   setSessionActive(false);
-  // };
-
-
 const endSession = async () => {
   const token = localStorage.getItem("token");
 
   const res = await authFetch(
-    `http://localhost:5000/api/attendance/end/${sessionId}`,
+    `${url}/api/attendance/end/${sessionId}`,
     {
       method: "PUT",
       headers: {
@@ -404,7 +368,7 @@ const endSession = async () => {
       const token = localStorage.getItem("token");
 
       const res = await authFetch(
-        `http://localhost:5000/api/attendance/session/${sessionId}/students`,
+        `${url}/api/attendance/session/${sessionId}/students`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -425,7 +389,7 @@ const endSession = async () => {
     const token = localStorage.getItem("token");
 
     const res = await authFetch(
-      `http://localhost:5000/api/students?class=${selectedClass}&subject=${selectedSubject}`,
+      `${url}/api/students?class=${selectedClass}&subject=${selectedSubject}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -446,7 +410,7 @@ const endSession = async () => {
       const token = localStorage.getItem("token");
 
       const res = await authFetch(
-        "http://localhost:5000/api/teachers/assignments",
+        `${url}/api/teachers/assignments`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -774,7 +738,7 @@ function SessionsPage({
     const token = localStorage.getItem("token");
 
     const res = await authFetch(
-      `http://localhost:5000/api/attendance/session/${sessionId}`,
+      `${url}/api/attendance/session/${sessionId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -799,7 +763,7 @@ function SessionsPage({
   const token = localStorage.getItem("token");
 
   for (const student of selectedSession.students) {
-    const res = await authFetch("http://localhost:5000/api/attendance/edit", {
+    const res = await authFetch(`${url}/api/attendance/edit`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -1344,7 +1308,7 @@ function ReportsPage() {
       try {
         setLoading(true);
         const res = await authFetch(
-          `http://localhost:5000/api/attendance/teacher/eligibility?class_id=${selectedClass}&subject_id=${selectedSubject}`,
+          `${url}/api/attendance/teacher/eligibility?class_id=${selectedClass}&subject_id=${selectedSubject}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -1368,7 +1332,7 @@ function ReportsPage() {
     const fetchAssignments = async () => {
       try {
         const res = await authFetch(
-          "http://localhost:5000/api/teachers/assignments",
+          `${url}/api/teachers/assignments`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -1688,7 +1652,7 @@ const TeacherDashboard = () => {
   const fetchSessions = async () => {
     const token = localStorage.getItem("token");
 
-    const res = await authFetch("http://localhost:5000/api/attendance/history", {
+    const res = await authFetch(`${url}/api/attendance/history`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res) return;

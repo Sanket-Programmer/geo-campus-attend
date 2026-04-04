@@ -63,6 +63,8 @@ const navItems = [
   { title: "Subjects Management", url: "/academic/subjects", icon: BookOpen },
 ];
 
+const url = "http://localhost:5000";
+
 // ---- Dashboard Page ----
 const StatCard = ({ title, value, icon, variant }) => {
   const variantStyles = {
@@ -104,7 +106,7 @@ function AcademicDashboardPage() {
       try {
         setLoading(true);
         const res = await authFetch(
-          "http://localhost:5000/api/departments/details",
+          `${url}/api/departments/details`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -127,7 +129,7 @@ function AcademicDashboardPage() {
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const res = await authFetch("http://localhost:5000/api/subjects", {
+        const res = await authFetch(`${url}/api/subjects`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         if (!res) return;
@@ -321,7 +323,7 @@ function StudentsPage() {
     subjectsRegistered?: string[];
   }
 
-  const API = "http://localhost:5000/api/students";
+  const API = `${url}/api/students`;
   const { toast } = useToast();
 
   const [studentsList, setStudentsList] = useState([]);
@@ -462,7 +464,7 @@ function StudentsPage() {
   const fetchSubjectsByDept = async (dept: string, semester: string) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/subjects/by-department/${dept}?semester=${semester}`,
+        `${url}/api/subjects/by-department/${dept}?semester=${semester}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, //added authorization header
         },
@@ -481,7 +483,7 @@ function StudentsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res1 = await authFetch("http://localhost:5000/api/classes", {
+      const res1 = await authFetch(`${url}/api/classes`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
@@ -490,7 +492,7 @@ function StudentsPage() {
         setClasses(data1);
       }
       const res2 = await authFetch(
-        "http://localhost:5000/api/departments/details",
+        `${url}/api/departments/details`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
@@ -1122,7 +1124,7 @@ function TeachersPage() {
 
   const { toast } = useToast();
 
-  const API = "http://localhost:5000/api/teachers";
+  const API = `${url}/api/teachers`;
 
   const [teachersList, setTeachersList] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -1172,10 +1174,10 @@ function TeachersPage() {
       const token = localStorage.getItem("token");
 
       const [subRes, classRes] = await Promise.all([
-        authFetch(`http://localhost:5000/api/subjects/by-school/${deptName}`, {
+        authFetch(`${url}/api/subjects/by-school/${deptName}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        authFetch(`http://localhost:5000/api/classes/by-school/${deptName}`, {
+        authFetch(`${url}/api/classes/by-school/${deptName}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -1322,7 +1324,7 @@ function TeachersPage() {
 
       const token = localStorage.getItem("token");
 
-      const res1 = await authFetch("http://localhost:5000/api/subjects", {
+      const res1 = await authFetch(`${url}/api/subjects`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res1) {
@@ -1330,7 +1332,7 @@ function TeachersPage() {
         setSubjects(Array.isArray(data1) ? data1 : []);
       }
 
-      const res2 = await authFetch("http://localhost:5000/api/classes", {
+      const res2 = await authFetch(`${url}/api/classes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res2) {
@@ -1339,7 +1341,7 @@ function TeachersPage() {
       }
 
       const res3 = await authFetch(
-        "http://localhost:5000/api/departments/details",
+        `${url}/api/departments/details`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -2047,7 +2049,7 @@ function SubjectsPage() {
     credits: 3,
   });
 
-  const API = "http://localhost:5000/api/subjects";
+  const API = `${url}/api/subjects`;
 
   // --- API Handlers (Untouched) ---
   const handleAdd = async () => {
@@ -2160,7 +2162,7 @@ function SubjectsPage() {
   const fetchDepartments = async () => {
     try {
       const res = await authFetch(
-        "http://localhost:5000/api/departments/details",
+        `${url}/api/departments/details`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
@@ -2648,13 +2650,13 @@ function ClassesPage() {
   const [editClass, setEditClass] = useState<any>(null);
   const [deleteClass, setDeleteClass] = useState<any>(null);
 
-  const API = "http://localhost:5000/api/classes";
+  const API = `${url}/api/classes`;
 
   // ---------------- FETCH DEPARTMENTS ----------------
   const fetchDepartments = async () => {
     try {
       const res = await authFetch(
-        "http://localhost:5000/api/departments/details",
+        `${url}/api/departments/details`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },

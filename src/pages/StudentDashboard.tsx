@@ -67,6 +67,8 @@ const navItems = [
   { title: "Mark Attendance", url: "/student/mark", icon: MapPin },
 ];
 
+const url = "http://localhost:5000";
+
 function DashboardPage() {
   // --- Backend State (Kept Same) ---
   const [subjects, setSubjects] = useState([]);
@@ -80,7 +82,7 @@ function DashboardPage() {
       try {
         setLoading(true);
         const res = await authFetch(
-          "http://localhost:5000/api/attendance/student/subject-wise",
+          `${url}/api/attendance/student/subject-wise`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -105,7 +107,7 @@ function DashboardPage() {
       try {
         setMonthlyLoading(true);
         const res = await authFetch(
-          "http://localhost:5000/api/attendance/student/monthly",
+          `${url}/api/attendance/student/monthly`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -576,7 +578,7 @@ function AttendancePage() {
       try {
         setLoading(true);
         const res = await authFetch(
-          `http://localhost:5000/api/attendance/student/history?subject=${selectedSubject}&month=${selectedMonth}&year=${selectedYear}`,
+          `${url}/api/attendance/student/history?subject=${selectedSubject}&month=${selectedMonth}&year=${selectedYear}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -598,7 +600,7 @@ function AttendancePage() {
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const res = await authFetch("http://localhost:5000/api/students/subjects", {
+        const res = await authFetch(`${url}/api/students/subjects`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         if (!res) return;
@@ -918,7 +920,7 @@ function MarkAttendancePage() {
   const checkAlreadyMarked = async (sessionId) => {
     const token = localStorage.getItem("token");
     const res = await fetch(
-      `http://localhost:5000/api/attendance/status/${sessionId}`,
+      `${url}/api/attendance/status/${sessionId}`,
       {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       },
@@ -947,7 +949,7 @@ function MarkAttendancePage() {
         try {
           const token = localStorage.getItem("token");
           const res = await fetch(
-            "http://localhost:5000/api/attendance/verify",
+            `${url}/api/attendance/verify`,
             {
               method: "POST",
               headers: {
@@ -991,7 +993,7 @@ function MarkAttendancePage() {
   const handleMarkAttendance = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/attendance/mark", {
+      const res = await fetch(`${url}/api/attendance/mark`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

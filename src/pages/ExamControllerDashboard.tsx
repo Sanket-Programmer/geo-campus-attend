@@ -46,6 +46,8 @@ const navItems = [
   { title: "Reports", url: "/exam-controller/reports", icon: FileText },
 ];
 
+const yrl = "http://localhost:5000";
+
 function EligibilityPage() {
   const [search, setSearch] = useState("");
   const [students, setStudents] = useState([]);
@@ -75,7 +77,7 @@ function EligibilityPage() {
     const fetchDepartments = async () => {
       try {
         const res = await authFetch(
-          "http://localhost:5000/api/departments/with-subjects",
+          `${yrl}/api/departments/with-subjects`,
                   {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -110,7 +112,7 @@ function EligibilityPage() {
         setStudents([]);
 
         const res = await authFetch(
-          `http://localhost:5000/api/exam/eligibility?department_id=${dept}&subject_id=${subject}`,
+          `${yrl}/api/exam/eligibility?department_id=${dept}&subject_id=${subject}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -381,7 +383,7 @@ function ReportsPage() {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:5000/api/reports/export?department_id=${reportDept}&semester=${semesterNumber}&month=${month}`,
+        `${yrl}/api/reports/export?department_id=${reportDept}&semester=${semesterNumber}&month=${month}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
@@ -419,7 +421,7 @@ function ReportsPage() {
         setLoading(true);
 
         const res = await authFetch(
-          `http://localhost:5000/api/reports/monthly-summary?department_id=${reportDept}&semester=${semesterNumber}&period=${semester}`,
+          `${yrl}/api/reports/monthly-summary?department_id=${reportDept}&semester=${semesterNumber}&period=${semester}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -444,7 +446,7 @@ function ReportsPage() {
     const fetchDepartments = async () => {
       try {
         const res = await authFetch(
-          "http://localhost:5000/api/departments/details",
+          `${yrl}/api/departments/details`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
