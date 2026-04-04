@@ -67,7 +67,7 @@ const navItems = [
   { title: "Mark Attendance", url: "/student/mark", icon: MapPin },
 ];
 
-const url = "http://localhost:5000";
+const url = "https://geo-campus.onrender.com";
 
 function DashboardPage() {
   // --- Backend State (Kept Same) ---
