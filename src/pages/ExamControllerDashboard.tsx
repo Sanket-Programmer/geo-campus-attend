@@ -340,7 +340,7 @@ function EligibilityPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right pr-6">
+                    <TableCell className="text-right md:pr-6 p-2">
                       <StatusBadge status={s.eligibility} />
                     </TableCell>
                   </TableRow>
