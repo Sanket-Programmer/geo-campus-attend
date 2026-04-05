@@ -264,8 +264,8 @@ function EligibilityPage() {
                 <TableHead className="font-semibold text-slate-600">
                   Attendance
                 </TableHead>
-                <TableHead className="font-semibold text-slate-600 text-right pr-8">
-                  Status
+                <TableHead className="font-semibold text-slate-600 text-right md:pr-8">
+                  <span className="pl-8">Status</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -340,7 +340,7 @@ function EligibilityPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right md:pr-6 p-2">
+                    <TableCell className="text-right md:pr-6">
                       <StatusBadge status={s.eligibility} />
                     </TableCell>
                   </TableRow>
