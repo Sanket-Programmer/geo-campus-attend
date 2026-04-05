@@ -457,15 +457,7 @@ export const verifyAttendance = async (req, res) => {
         });
       }
     }
-
-    console.log("Student position:", latitude, longitude);
-    console.log("Session position:", session.latitude, session.longitude);
-    console.log(
-      "Distance:",
-      getDistance(session.latitude, session.longitude, latitude, longitude),
-    );
-
-
+    
     res.json({
       message: "Verified",
       distance,
