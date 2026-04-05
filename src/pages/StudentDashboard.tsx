@@ -833,16 +833,17 @@ function AttendancePage() {
                       <TableCell className="pl-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-sm text-foreground">
-                            {dateObj.toLocaleDateString("en-US", {
+                            {dateObj.toLocaleDateString("en-IN", {
                               day: "2-digit",
                               month: "short",
                             })}
                           </span>
                           <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {dateObj.toLocaleTimeString([], {
+                            {dateObj.toLocaleTimeString("en-IN", {
                               hour: "2-digit",
                               minute: "2-digit",
+                              hour12: true,
                             })}
                           </span>
                         </div>
