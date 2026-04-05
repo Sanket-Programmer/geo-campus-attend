@@ -273,7 +273,7 @@ function TeacherDashboardPage({
                   class_id: selectedClass,
                   latitude: pos.coords.latitude,
                   longitude: pos.coords.longitude,
-                  radius: 50,
+                  radius: 100,
                   geolocation_enabled: true,
                 }),
               },
