@@ -379,7 +379,7 @@ const endSession = async () => {
       const data = await res.json();
 
       setLiveStudents(data);
-    }, 2000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [sessionId, sessionActive]);
