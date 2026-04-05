@@ -28,8 +28,8 @@ export const startSession = async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO attendance_sessions
-      (teacher_id, subject_id, class_id, session_date, latitude, longitude, radius, geolocation_enabled)
-      VALUES ($1,$2,$3,CURRENT_DATE,$4,$5,$6,$7)
+      (teacher_id, subject_id, class_id, session_date, start_time, latitude, longitude, radius, geolocation_enabled)
+      VALUES ($1,$2,$3,CURRENT_DATE AT TIME ZONE 'Asia/Kolkata',CURRENT_TIMESTAMP,$4,$5,$6,$7)
       RETURNING *`,
       [
         teacher_id,
