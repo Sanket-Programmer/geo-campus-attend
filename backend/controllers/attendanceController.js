@@ -48,9 +48,62 @@ export const startSession = async (req, res) => {
   }
 };
 
+// export const getActiveSession = async (req, res) => {
+//   try {
+//     const result = await pool.query(`
+//       SELECT 
+//         s.session_id,
+//         s.start_time,
+//         s.latitude,
+//         s.longitude,
+//         s.radius,
+//         s.geolocation_enabled,
+
+//         sub.subject_name,
+//         sub.subject_code,
+
+//         c.class_name,
+
+//         t.teacher_id,
+//         u.email AS teacher_email,
+//         t.name AS teacher_name
+
+//       FROM attendance_sessions s
+//       JOIN subjects sub ON s.subject_id = sub.subject_id
+//       JOIN classes c ON s.class_id = c.class_id
+//       JOIN teachers t ON s.teacher_id = t.teacher_id
+//       JOIN users u ON t.user_id = u.user_id
+
+//       WHERE s.status='active' AND s.geolocation_enabled = true
+//       ORDER BY s.start_time DESC
+//       LIMIT 1
+//     `);
+
+//     res.json(result.rows[0] || null);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
 export const getActiveSession = async (req, res) => {
   try {
-    const result = await pool.query(`
+    const user_id = req.user.user_id;
+
+    const studentRes = await pool.query(
+      `SELECT student_id, class_id
+       FROM students
+       WHERE user_id = $1`,
+      [user_id]
+    );
+
+    if (!studentRes.rows.length) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const { student_id, class_id } = studentRes.rows[0];
+
+    const result = await pool.query(
+      `
       SELECT 
         s.session_id,
         s.start_time,
@@ -61,7 +114,6 @@ export const getActiveSession = async (req, res) => {
 
         sub.subject_name,
         sub.subject_code,
-
         c.class_name,
 
         t.teacher_id,
@@ -74,10 +126,20 @@ export const getActiveSession = async (req, res) => {
       JOIN teachers t ON s.teacher_id = t.teacher_id
       JOIN users u ON t.user_id = u.user_id
 
-      WHERE s.status='active' AND s.geolocation_enabled = true
+      WHERE s.status='active'
+        AND s.geolocation_enabled = true
+        AND s.class_id = $1
+        AND s.subject_id IN (
+          SELECT subject_id
+          FROM student_subjects
+          WHERE student_id = $2
+        )
+
       ORDER BY s.start_time DESC
       LIMIT 1
-    `);
+      `,
+      [class_id, student_id]
+    );
 
     res.json(result.rows[0] || null);
   } catch (err) {
