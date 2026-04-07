@@ -1360,7 +1360,7 @@ function TeachersPage() {
       return <span className="text-muted-foreground">—</span>;
 
     return (
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {items.map((item, idx) => (
           <span
             key={idx}
