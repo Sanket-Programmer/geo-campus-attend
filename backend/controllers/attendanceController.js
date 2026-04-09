@@ -432,6 +432,7 @@ export const getSessionDetails = async (req, res) => {
     res.json({
       id: id,
       class_name: sessionRes.rows[0]?.class_name || "N/A",
+      start_time: sessionRes.rows[0]?.start_time || "N/A",
       students: students.rows,
     });
   } catch (err) {
