@@ -408,7 +408,8 @@ export const getSessionDetails = async (req, res) => {
     const sessionRes = await pool.query(
       `SELECT 
          s.session_id AS id,
-         c.class_name
+         c.class_name,
+         s.start_time
        FROM attendance_sessions s
        JOIN classes c ON s.class_id = c.class_id
        WHERE s.session_id = $1`,
