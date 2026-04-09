@@ -1094,7 +1094,7 @@ function SessionsPage({
               <DetailTile
                 label="Date"
                 value={
-                    selectedSession?.start_time
+                    selectedSession
                     ? new Date(selectedSession.start_time).toLocaleDateString("en-IN", {
                         day: "2-digit",
                         month: "short",
