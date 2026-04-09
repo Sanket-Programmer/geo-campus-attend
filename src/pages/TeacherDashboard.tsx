@@ -1079,7 +1079,7 @@ function SessionsPage({
                 label="Date"
                 value={
                   selectedSession
-                    ? new Date(selectedSession.date).toLocaleDateString(
+                    ? new Date(selectedSession.time).toLocaleDateString(
                         "en-IN",
                         { day: "2-digit", month: "short" },
                       )
