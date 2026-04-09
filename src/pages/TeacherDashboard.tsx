@@ -948,9 +948,9 @@ function SessionsPage({
                           {s.code}
                         </div>
                       </TableCell>
-                      <TableCell className="px-6">
+                      {/* <TableCell className="px-6">
                         <div className="text-sm font-bold">
-                          {new Date(s.time).toLocaleDateString("en-IN", {
+                          {new Date(s.date).toLocaleDateString("en-IN", {
                             day: "numeric",
                             month: "long",
                           })}
@@ -969,6 +969,31 @@ function SessionsPage({
                             );
                           })()}
                         </div>
+                      </TableCell> */}
+                      <TableCell className="px-6">
+                            {(() => {
+                                const startTime = s.time.split(" - ")[0]; 
+                                const dateObj = new Date(startTime);
+
+                            return (
+                                  <>
+                                    <div className="text-sm font-bold">
+                                      {dateObj.toLocaleDateString("en-IN", {
+                                          day: "numeric",
+                                          month: "long",
+                                      })}
+                                    </div>
+
+                                    <div className="text-xs text-muted-foreground lowercase">
+                                        {dateObj.toLocaleTimeString("en-IN", {
+                                              hour: "numeric",
+                                              minute: "2-digit",
+                                              hour12: true,
+                                          })}
+                                    </div>
+                                   </>
+                                );
+                              })()}
                       </TableCell>
                       <TableCell className="px-6 py-5">
                         <div className="text-[11px] font-semibold text-muted-foreground">
