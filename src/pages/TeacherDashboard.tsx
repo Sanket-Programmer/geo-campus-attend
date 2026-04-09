@@ -1678,6 +1678,7 @@ const TeacherDashboard = () => {
       class_name: s.class_name,
       code: s.code,
       date: s.date,
+      start_time: s.start_time,
       time: `${s.start_time} - ${s.end_time || ""}`,
       present: Number(s.present),
       total: Number(s.total),
