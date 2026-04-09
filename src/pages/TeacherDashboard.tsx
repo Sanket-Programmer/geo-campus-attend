@@ -64,6 +64,7 @@ interface SessionRecord {
   subject: string;
   code: string;
   date: string;
+  start_time: string,
   time: string;
   class_name: string;
   present: number;
