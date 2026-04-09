@@ -748,24 +748,17 @@ function SessionsPage({
     const data = await res.json();
     console.log(data);
 
-    // setSelectedSession((prev) => {
-    //   if (!prev) return null;
+    setSelectedSession((prev) => {
+      if (!prev) return null;
 
-    //   return {
-    //     ...prev,
-    //     id: data.id,
-    //     class_name: data.class_name,
-    //     start_time: data.start_time,
-    //     students: data.students || [],
-    //   };
-    // });
-
-    setSelectedSession({
-  id: data.id,
-  class_name: data.class_name,
-  start_time: data.start_time,
-  students: data.students || [],
-});
+      return {
+        ...prev,
+        id: data.id,
+        class_name: data.class_name,
+        start_time: data.start_time,
+        students: data.students || [],
+      };
+    });
   };
 
   const updateAttendance = async () => {
@@ -956,7 +949,7 @@ function SessionsPage({
                           {s.code}
                         </div>
                       </TableCell>
-                      {/* <TableCell className="px-6">
+                      <TableCell className="px-6">
                             {(() => {
                                 const startTime = s.time.split(" - ")[0]; 
                                 const dateObj = new Date(startTime);
@@ -980,35 +973,7 @@ function SessionsPage({
                                    </>
                                 );
                               })()}
-                      </TableCell> */}
-                      <TableCell className="px-6">
-                            {(() => {
-                                  const startTime = s?.time?.split(" - ")?.[0];
-
-                                  if (!startTime) return "-";
-
-                                   const dateObj = new Date(startTime);
-
-                              return (
-                            <>
-                               <div className="text-sm font-bold">
-                                {dateObj.toLocaleDateString("en-IN", {
-                                    day: "numeric",
-                                    month: "long",
-                                  })}
-                              </div>
-
-                                <div className="text-xs text-muted-foreground lowercase">
-                                {dateObj.toLocaleTimeString("en-IN", {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                })}
-                              </div>
-                            </>
-                            );
-                            })()}
-                      </TableCell>
+                      </TableCell> 
                       <TableCell className="px-6 py-5">
                         <div className="text-[11px] font-semibold text-muted-foreground">
                           {s?.class_name || "NA"}
@@ -1196,75 +1161,6 @@ function SessionsPage({
                 </span>
               </div>
             </div>
-
-            {/* <div className="border border-border/50 rounded-2xl overflow-hidden bg-background/50">
-              <div className="max-h-[30vh] md:max-h-[35vh] overflow-y-auto">
-                <Table>
-                  <TableHeader className="bg-muted/50 sticky top-0 z-10">
-                    <TableRow className="hover:bg-transparent">
-                      {isEditing && (
-                        <TableHead className="w-10 pl-3"></TableHead>
-                      )}
-                      <TableHead className="text-[9px] font-black uppercase pl-4">
-                        Regd No / Name
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell text-[10px] font-black uppercase text-center">
-                        Time Marked
-                      </TableHead>
-                      <TableHead className="text-[9px] font-black uppercase text-right pr-8">
-                        Status
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedSession?.students?.map((st) => (
-                      <TableRow key={st.id} className="border-border/40">
-                        {isEditing && (
-                          <TableCell className="pl-3">
-                            <Checkbox
-                              checked={!!editAttendance[st.id]}
-                              onCheckedChange={(val) =>
-                                setEditAttendance((p) => ({
-                                  ...p,
-                                  [st.id]: !!val,
-                                }))
-                              }
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell className="pl-4 py-2">
-                          <p className="text-[9px] font-mono text-muted-foreground">
-                            {st.id}
-                          </p>
-                          <p className="text-sm font-bold truncate max-w-[150px]">
-                            {st.name}
-                          </p>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-center text-xs font-medium text-muted-foreground">
-                          {st.time !== "-"
-                            ? new Date(st.time).toLocaleTimeString("en-IN", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "—"}
-                        </TableCell>
-                        <TableCell className="text-right pr-4">
-                          <StatusBadge
-                            status={
-                              isEditing
-                                ? editAttendance[st.id]
-                                  ? "present"
-                                  : "absent"
-                                : st.status
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div> */}
 
             <div className="border border-border/50 rounded-2xl overflow-hidden bg-background/50">
   <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20">
