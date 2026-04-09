@@ -950,7 +950,7 @@ function SessionsPage({
                       </TableCell>
                       <TableCell className="px-6">
                         <div className="text-sm font-bold">
-                          {new Date(s.date).toLocaleDateString("en-IN", {
+                          {new Date(s.time).toLocaleDateString("en-IN", {
                             day: "numeric",
                             month: "long",
                           })}
