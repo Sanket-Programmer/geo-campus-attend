@@ -948,28 +948,6 @@ function SessionsPage({
                           {s.code}
                         </div>
                       </TableCell>
-                      {/* <TableCell className="px-6">
-                        <div className="text-sm font-bold">
-                          {new Date(s.date).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "long",
-                          })}
-                        </div>
-
-                        <div className="text-xs text-muted-foreground lowercase">
-                          {(() => {
-                            const startTime = s.time.split(" - ")[0];
-                            return new Date(startTime).toLocaleTimeString(
-                              "en-IN",
-                              {
-                                hour: "numeric",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
-                            );
-                          })()}
-                        </div>
-                      </TableCell> */}
                       <TableCell className="px-6">
                             {(() => {
                                 const startTime = s.time.split(" - ")[0]; 
@@ -1101,16 +1079,27 @@ function SessionsPage({
                 label="Class"
                 value={selectedSession?.class_name || "N/A"}
               />
-              <DetailTile
+              {/* <DetailTile
                 label="Date"
                 value={
                   selectedSession
-                    ? new Date(selectedSession.start_time).toLocaleDateString(
+                    ? new Date(selectedSession.date).toLocaleDateString(
                         "en-IN",
                         { day: "2-digit", month: "short" },
                       )
                     : "-"
                 }
+              /> */}
+              <DetailTile
+                label="Date"
+                value={
+                    selectedSession?.start_time
+                    ? new Date(selectedSession.start_time).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                    })
+                    : "-"
+                  }
               />
               <DetailTile
                 label="Time"
