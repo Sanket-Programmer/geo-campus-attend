@@ -755,6 +755,7 @@ function SessionsPage({
         ...prev,
         id: data.id,
         class_name: data.class_name,
+        start_time: data.start_time,
         students: data.students || [],
       };
     });
