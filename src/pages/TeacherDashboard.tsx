@@ -748,17 +748,24 @@ function SessionsPage({
     const data = await res.json();
     console.log(data);
 
-    setSelectedSession((prev) => {
-      if (!prev) return null;
+    // setSelectedSession((prev) => {
+    //   if (!prev) return null;
 
-      return {
-        ...prev,
-        id: data.id,
-        class_name: data.class_name,
-        start_time: data.start_time,
-        students: data.students || [],
-      };
-    });
+    //   return {
+    //     ...prev,
+    //     id: data.id,
+    //     class_name: data.class_name,
+    //     start_time: data.start_time,
+    //     students: data.students || [],
+    //   };
+    // });
+
+    setSelectedSession({
+  id: data.id,
+  class_name: data.class_name,
+  start_time: data.start_time,
+  students: data.students || [],
+});
   };
 
   const updateAttendance = async () => {
