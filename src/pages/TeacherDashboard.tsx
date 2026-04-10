@@ -1028,20 +1028,28 @@ function SessionsPage({
                     <span>•</span>
                     <span>
                        {(() => {
-                            const startTime = s?.time?.split(" - ")?.[0];
-                            if (!startTime) return "-";
+                          const startTime = s?.time?.split(" - ")?.[0];
+                          if (!startTime) return "-";
 
-                            const dateObj = new Date(startTime);
+                          const dateObj = new Date(startTime);
 
-                            return `${dateObj.toLocaleDateString("en-IN", {
-                               day: "numeric",
-                               month: "short",
-                              })}   •   ${dateObj.toLocaleTimeString("en-IN", {
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: true,
-                             })}`;
-                          })()}
+                          return (
+                             <>
+                               {dateObj.toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "long",
+                                })}
+                                {"  "}
+                                 •
+                                {"  "}
+                               {dateObj.toLocaleTimeString("en-IN", {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                  hour12: true,
+                               })}
+                             </>
+                            );
+                           })()}
                     </span>
                     <span>•</span>
                     <span
