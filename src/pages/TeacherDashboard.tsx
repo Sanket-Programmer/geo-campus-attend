@@ -1026,7 +1026,7 @@ function SessionsPage({
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
                     <span>{s?.class_name || "NA"}</span>
                     <span>•</span>
-                    <span>{new Date(s.date).toLocaleDateString("en-IN")}</span>
+                    <span>{new Date(s.date + "T00:00:00").toLocaleDateString("en-IN")}</span>
                     <span>•</span>
                     <span
                       className={s.geo ? "text-indigo-500" : "text-orange-500"}
