@@ -1039,7 +1039,7 @@ function SessionsPage({
                                   day: "numeric",
                                   month: "short",
                                 })}
-                                <span>•</span>
+                               {"    •    "}
                                {dateObj.toLocaleTimeString("en-IN", {
                                   hour: "numeric",
                                   minute: "2-digit",
