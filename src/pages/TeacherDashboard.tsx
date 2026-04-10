@@ -746,8 +746,6 @@ function SessionsPage({
     );
     if (!res) return;
     const data = await res.json();
-    console.log(data);
-
     setSelectedSession((prev) => {
       if (!prev) return null;
 
@@ -1026,7 +1024,7 @@ function SessionsPage({
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
                     <span>{s?.class_name || "NA"}</span>
                     <span>•</span>
-                    <span>
+                    <span className="flex items-center gap-2">
                        {(() => {
                           const startTime = s?.time?.split(" - ")?.[0];
                           if (!startTime) return "-";
@@ -1039,7 +1037,7 @@ function SessionsPage({
                                   day: "numeric",
                                   month: "short",
                                 })}
-                               {"    •    "}
+                               <span>•</span>
                                {dateObj.toLocaleTimeString("en-IN", {
                                   hour: "numeric",
                                   minute: "2-digit",
