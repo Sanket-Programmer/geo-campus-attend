@@ -1026,7 +1026,23 @@ function SessionsPage({
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
                     <span>{s?.class_name || "NA"}</span>
                     <span>•</span>
-                    <span>{new Date(s.date + "T00:00:00").toLocaleDateString("en-IN")}</span>
+                    <span>
+                       {(() => {
+                            const startTime = s?.time?.split(" - ")?.[0];
+                            if (!startTime) return "-";
+
+                            const dateObj = new Date(startTime);
+
+                            return `${dateObj.toLocaleDateString("en-IN", {
+                               day: "numeric",
+                               month: "short",
+                              })} • ${dateObj.toLocaleTimeString("en-IN", {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                             })}`;
+                          })()}
+                    </span>
                     <span>•</span>
                     <span
                       className={s.geo ? "text-indigo-500" : "text-orange-500"}
