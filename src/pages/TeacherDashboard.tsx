@@ -64,11 +64,12 @@ interface SessionRecord {
   subject: string;
   code: string;
   date: string;
-  start_time: string,
+  start_time: string;
   time: string;
   class_name: string;
   present: number;
   total: number;
+  absent: number;
   geo: boolean;
   students: {
     id: string;
@@ -1100,17 +1101,6 @@ function SessionsPage({
                 label="Class"
                 value={selectedSession?.class_name || "N/A"}
               />
-              {/* <DetailTile
-                label="Date"
-                value={
-                  selectedSession
-                    ? new Date(selectedSession.date).toLocaleDateString(
-                        "en-IN",
-                        { day: "2-digit", month: "short" },
-                      )
-                    : "-"
-                }
-              /> */}
               <DetailTile
                 label="Date"
                 value={
@@ -1158,22 +1148,35 @@ function SessionsPage({
                   <UserX className="w-3.5 h-3.5 text-destructive" />
                   <span className="text-sm font-black text-destructive">
                     <span className="md:inline hidden">Absent</span>{" "}
-                    {(selectedSession?.students.length || 0) -
+                    {/* {(selectedSession?.students.length || 0) -
                       (isEditing
                         ? Object.values(editAttendance).filter(Boolean).length
-                        : selectedSession?.present || 0)}
+                        : selectedSession?.present || 0)} */}
+                    {isEditing
+                      ? Object.values(editAttendance).filter(Boolean).length
+                      : selectedSession?.absent || 0}
                   </span>
                 </div>
               </div>
               <div className="bg-muted/50 px-3 py-1 rounded-full">
                 <span className="text-xs font-black">
                   <span className="md:inline hidden">Attendance Rate</span>{" "}
-                  {selectedSession
+                  {/* {selectedSession
                     ? Math.round(
                         ((isEditing
                           ? Object.values(editAttendance).filter(Boolean).length
                           : selectedSession.present) /
                           selectedSession.students.length) *
+                          100,
+                      )
+                    : 0}
+                  %  */}
+                  {selectedSession
+                    ? Math.round(
+                        ((isEditing
+                          ? Object.values(editAttendance).filter(Boolean).length
+                          : selectedSession?.present) /
+                          selectedSession?.total) *
                           100,
                       )
                     : 0}
@@ -1201,7 +1204,7 @@ function SessionsPage({
       </TableHeader>
       <TableBody>
         {selectedSession?.students?.map((st) => (
-          <TableRow key={st.id} className="border-border/40 h-[48px]"> {/* 4. Fixed height for consistency */}
+          <TableRow key={st.id} className="border-border/40 h-[48px]">
             {isEditing && (
               <TableCell className="pl-3">
                 <Checkbox
@@ -1702,6 +1705,7 @@ const TeacherDashboard = () => {
       time: `${s.start_time} - ${s.end_time || ""}`,
       present: Number(s.present),
       total: Number(s.total),
+      absent: Number(s.total) - Number(s.present),
       geo: s.geo,
       students: [],
     }));
