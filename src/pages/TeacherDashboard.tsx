@@ -1302,6 +1302,8 @@ function SessionsPage({
                       ...selectedSession,
                       students: updatedStudents,
                       present: presentCount,
+                      absent: updatedStudents.length - presentCount,
+                      total: updatedStudents.length,
                     };
 
                     onUpdateSession(updatedSession);
