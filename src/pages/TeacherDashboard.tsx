@@ -1152,9 +1152,13 @@ function SessionsPage({
                       (isEditing
                         ? Object.values(editAttendance).filter(Boolean).length
                         : selectedSession?.present || 0)} */}
-                    {isEditing
+                    {/* {isEditing
                       ? Object.values(editAttendance).filter(Boolean).length
-                      : selectedSession?.absent || 0}
+                      : selectedSession?.absent || 0} */}
+                     {isEditing
+                      ? (selectedSession?.students.length || 0) -
+                        Object.values(editAttendance).filter(Boolean).length
+                      : selectedSession?.absent}
                   </span>
                 </div>
               </div>
