@@ -554,7 +554,7 @@ useEffect(() => {
                   <TableHead className="w-[120px]">Regd No.</TableHead>
                   <TableHead>Student Details</TableHead>
                   <TableHead>Contact Details</TableHead>
-                  <TableHead>Academic Info</TableHead>
+                  <TableHead className="px-4">Academic Info</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -579,7 +579,7 @@ useEffect(() => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-2">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="font-medium">
                           {s.dept}
@@ -2881,7 +2881,7 @@ function ClassesPage() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableHead className="w-[250px] pl-6">Class Name</TableHead>
+                  <TableHead className="pl-6">Class Name</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead className="hidden md:table-cell">School</TableHead>
                   <TableHead>Total Students</TableHead>
@@ -2911,7 +2911,7 @@ function ClassesPage() {
                       key={c.id}
                       className="hover:bg-muted/10 transition-colors"
                     >
-                      <TableCell className="font-semibold pl-6">
+                      <TableCell className="font-semibold whitespace-nowrap">
                         {c.name}
                       </TableCell>
 
