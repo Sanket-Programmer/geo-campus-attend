@@ -2588,8 +2588,11 @@ function SubjectsPage() {
       </Dialog>
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
+        <DialogContent className="w-[95vw] sm:max-w-[400px] rounded-2xl p-6">
+          <DialogHeader className="items-center text-center">
+            <div className="h-12 w-12 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-2">
+              <Trash2 className="h-6 w-6" />
+            </div>
             <DialogTitle className="text-destructive">
               Remove Subject
             </DialogTitle>
@@ -2599,7 +2602,7 @@ function SubjectsPage() {
               undone and will remove it from all assigned departments.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-center gap-3 mt-4">
             <Button variant="outline" onClick={() => setShowDelete(false)}>
               Cancel
             </Button>
@@ -3182,8 +3185,11 @@ function ClassesPage() {
 
       {/* ---------------- DELETE DIALOG ---------------- */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
+        <DialogContent className="w-[95vw] sm:max-w-[400px] rounded-2xl p-6">
+          <DialogHeader className="items-center text-center">
+            <div className="h-12 w-12 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-2">
+              <Trash2 className="h-6 w-6" />
+            </div>
             <DialogTitle className="text-destructive">
               Confirm Deletion
             </DialogTitle>
@@ -3194,7 +3200,7 @@ function ClassesPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-center gap-3 mt-4">
             <Button
               variant="outline"
               className="w-full sm:w-auto"
