@@ -250,7 +250,7 @@ function EligibilityPage() {
         {/* Modern Table */}
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50 hover:bg-slate-50">
+            <TableHeader className="bg-slate-50 hover:bg-slate-50 whitespace-nowrap">
               <TableRow className="border-slate-100">
                 <TableHead className="font-semibold text-slate-600 h-12">
                   Regd No.
@@ -307,7 +307,7 @@ function EligibilityPage() {
                     <TableCell className="font-mono text-xs text-slate-500 font-medium py-4">
                       {s.student_id}
                     </TableCell>
-                    <TableCell className="font-medium text-slate-900">
+                    <TableCell className="font-medium text-slate-900 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center text-primary shrink-0 hidden sm:flex">
                           <GraduationCap className="w-4 h-4" />
@@ -639,7 +639,7 @@ function ReportsPage() {
 
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50">
+            <TableHeader className="bg-slate-50 whitespace-nowrap">
               <TableRow className="border-slate-100 hover:bg-transparent">
                 <TableHead className="font-semibold text-slate-600 h-12 pl-6">
                   Month
