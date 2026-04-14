@@ -1555,7 +1555,7 @@ function ReportsPage() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-muted/30">
+              <TableHeader className="bg-muted/30 whitespace-nowrap">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 h-12">
                     Student Profile
@@ -1598,7 +1598,7 @@ function ReportsPage() {
                         key={r.student_id}
                         className="group hover:bg-primary/[0.02] transition-colors border-border/40"
                       >
-                        <TableCell className="px-6 py-4">
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div>
                               <p className="font-bold text-sm leading-none mb-1">
