@@ -370,9 +370,8 @@ export const getSessionHistory = async (req, res) => {
 
          (
            SELECT COUNT(*) 
-           FROM students st
-           WHERE st.class_id = s.class_id
-           AND st.semester = sub.semester
+           FROM attendance_records ar2
+           WHERE ar2.session_id = s.session_id
          ) AS total
 
        FROM attendance_sessions s
