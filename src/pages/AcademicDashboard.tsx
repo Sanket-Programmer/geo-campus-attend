@@ -554,7 +554,7 @@ useEffect(() => {
                   <TableHead className="w-[120px]">Regd No.</TableHead>
                   <TableHead>Student Details</TableHead>
                   <TableHead>Contact Details</TableHead>
-                  <TableHead className="px-4">Academic Info</TableHead>
+                  <TableHead>Academic Info</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -579,7 +579,7 @@ useEffect(() => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="px-2">
+                    <TableCell className="whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="font-medium">
                           {s.dept}
