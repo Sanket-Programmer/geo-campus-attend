@@ -646,6 +646,25 @@ export const exportMonthlyExcelReport = async (req, res) => {
       });
     }
 
+    const deptRes = await pool.query(
+      `
+      SELECT department_name
+      FROM departments
+      WHERE department_id = $1
+  `,
+      [department_id],
+    );
+
+    if (!deptRes.rows.length) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    const deptName = deptRes.rows[0].department_name
+      .replace(/[^a-zA-Z0-9]/g, "_")
+      .replace(/_+/g, "_");
+
+    const semName = `${semester}Sem`.replace(/\s+/g, "");
+
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -653,7 +672,7 @@ export const exportMonthlyExcelReport = async (req, res) => {
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=Monthly_Report_${month}.xlsx`,
+      `attachment; filename=Monthly_Report_${month}_${deptName}_${semName}.xlsx`,
     );
 
     await workbook.xlsx.write(res);
