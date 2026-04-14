@@ -204,7 +204,7 @@ function AcademicDashboardPage() {
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-muted/30">
+            <TableHeader className="bg-muted/30 whitespace-nowrap">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="text-[10px] font-black uppercase tracking-widest px-6 h-12">
                   Department Name
@@ -258,7 +258,7 @@ function AcademicDashboardPage() {
                     <TableCell className="px-6">
                       <Badge
                         variant="outline"
-                        className="bg-background font-bold text-[10px] uppercase rounded-md border-border/60"
+                        className="bg-background font-bold text-[10px] uppercase rounded-md border-border/60 whitespace-nowrap"
                       >
                         {d.school_name}
                       </Badge>
@@ -549,7 +549,7 @@ useEffect(() => {
         <CardContent>
           <div className="rounded-xl border border-border/50 overflow-hidden">
             <Table>
-              <TableHeader className="bg-muted/50">
+              <TableHeader className="bg-muted/50 whitespace-nowrap">
                 <TableRow>
                   <TableHead className="w-[120px]">Regd No.</TableHead>
                   <TableHead>Student Details</TableHead>
@@ -565,7 +565,7 @@ useEffect(() => {
                       {s.regd || s.student_id}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
+                      <div className="flex flex-col whitespace-nowrap gap-1">
                         <span className="font-bold text-sm">{s.name}</span>
                       </div>
                     </TableCell>
@@ -2879,7 +2879,7 @@ function ClassesPage() {
         <CardContent>
           <div className="rounded-xl border border-border/50 overflow-hidden">
             <Table>
-              <TableHeader className="bg-muted/30">
+              <TableHeader className="bg-muted/30 whitespace-nowrap">
                 <TableRow>
                   <TableHead className="pl-6">Class Name</TableHead>
                   <TableHead>Department</TableHead>
