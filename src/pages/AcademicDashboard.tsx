@@ -2881,7 +2881,7 @@ function ClassesPage() {
             <Table>
               <TableHeader className="bg-muted/30 whitespace-nowrap">
                 <TableRow>
-                  <TableHead className="pl-6">Class Name</TableHead>
+                  <TableHead>Class Name</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead className="hidden md:table-cell">School</TableHead>
                   <TableHead>Total Students</TableHead>
