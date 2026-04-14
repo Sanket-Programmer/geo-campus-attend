@@ -403,7 +403,12 @@ function ReportsPage() {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Monthly_Report_${month}.xlsx`;
+      const contentDisposition = res.headers.get("content-disposition");
+      let filename = `Monthly_Report_${month}.xlsx`;
+      if (contentDisposition && contentDisposition.includes("filename=")) {
+        filename = contentDisposition.split("filename=")[1].replace(/"/g, "");
+      }
+      a.download = filename;
       a.click();
 
       toast({
