@@ -636,14 +636,14 @@ export const getStudentSubjectWiseAttendance = async (req, res) => {
         sub.subject_code,
         sub.subject_name,
 
-        COUNT(DISTINCT ats.session_id) AS total_classes,
+        COUNT(DISTINCT ar.session_id) AS total_classes,
 
         COUNT(CASE WHEN ar.status = 'present' THEN 1 END) AS attended_classes,
 
         COALESCE(
           ROUND(
             (COUNT(CASE WHEN ar.status = 'present' THEN 1 END)::decimal
-            / NULLIF(COUNT(DISTINCT ats.session_id), 0)) * 100
+            / NULLIF(COUNT(DISTINCT ar.session_id), 0)) * 100
           , 2),
           0
         ) AS attendance_percentage
